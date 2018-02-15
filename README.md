@@ -13,13 +13,15 @@ This program is designed to extend the haplotypes using the phased genotypes (al
 # Q/A on phase extender: 
 
   **1) How is phase Extender different than other gw (genome wide) haplotype phasing program ?**
+  
     There are lots of GW haplotype phasing program, which are mostly built for human genome (modern or ancient). So, they 
     rely moslty on huge amount of genotype data and available haplotype reference panel. I don't know much detail on the 
     alrorithm that is used in those programs. But, phase-extender is built for extending the already existing short 
     haplotypes which come from short reads alignment. So, phase extender is most suitable for non-model organism, or 
     emerging model organism or for organism for which haplotype reference panel doesn't exist. 
     
-  **2) What kind of algorith does phase-extender use ? **
+  **2) What kind of algorith does phase-extender use ?**
+  
     phase-extender uses first order transition probabilities matrix from each level of genotypes from former haplotype 
     block to each level of genotypes to later haplotype block. 
     At the moment phase-extender only uses **forward-1stOrder-markov chains** transition probabilities. I soon plan to 
