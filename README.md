@@ -12,7 +12,7 @@ This program is designed to extend the haplotypes using the phased genotypes (al
 
 Q/A on phase extender: 
 
-1) How is phase Extender different than other gw (genome wide) haplotype phasing program.
+   1) How is phase Extender different than other gw (genome wide) haplotype phasing program.
     There are lots of GW haplotype phasing program, which are mostly built for human genome (modern or ancient). So, they 
     rely moslty on huge amount of genotype data and available haplotype reference panel. I don't know much detail on the 
     alrorithm that is used in those programs. But, phase-extender is built for extending the already existing short 
