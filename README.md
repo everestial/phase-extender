@@ -13,13 +13,13 @@ This program is designed to extend the haplotypes using the phased genotypes (al
 Q/A on phase extender: 
 
 1) How is phase Extender different than other gw (genome wide) haplotype phasing program.
-    There are lots of GW haplotype phasing program, which are mostly built for human genome (modern or ancient). So, they rely moslty
-    on huge amount of genotype data and available haplotype reference panel. I don't know much detail on the alrorithm that is used in
-    those programs. But, phase-extender is built for extending the already existing short haplotypes which come from short reads alignment.
-    So, phase extender is most suitable for non-model organism, or emerging model organism or for organism for which haplotype reference
-    panel doesn't exist. 
+    There are lots of GW haplotype phasing program, which are mostly built for human genome (modern or ancient). So, they 
+    rely moslty on huge amount of genotype data and available haplotype reference panel. I don't know much detail on the 
+    alrorithm that is used in those programs. But, phase-extender is built for extending the already existing short 
+    haplotypes which come from short reads alignment. So, phase extender is most suitable for non-model organism, or 
+    emerging model organism or for organism for which haplotype reference panel doesn't exist. 
     
-   What kind of algorith does phase-extender use? 
+  2) What kind of algorith does phase-extender use? 
     phase-extender uses first order transition probabilities matrix for each 
     
     
@@ -62,18 +62,31 @@ Q/A on phase extender:
     No, until now. Though it should be possible in near future.
    
    Does phase-extender use recombination into account?
-    No and possibly these feature will be of least importance in phase-extender. Phase-Extender mostly relies on already phased 
-    haplotype block from other samples. These haplotype blocks which were phased in other sample but in SOI were used to build 
-    transition probabilities. There is strong assumption that variation in other samples are not the result of recombination but
-    only mutation
+    No and possibly these feature will be of least importance in phase-extender. Phase-Extender mostly relies on already       
+    phased haplotype block from other samples. These haplotype blocks which were phased in other sample but in SOI were used 
+    to build transition probabilities. There is strong assumption that variation in other samples are not the result of 
+    recombination but only mutation.
     
    Does phase-extender phase rare genotypes?
-    Yes, it does. But, the rare genotype should be the part (phased to) of phased haplotype blocks. This is one of the good thing
-    about phase-extender compared to other tools when it come to rare genotype. When several SNPs are phased together to extend the
-    haplotype, rare genotypes are really hard to phase accurately - the reason being the statistical significance of the rare genotype
-    belonging to either two phase state is highly ambigous. But, if the rare genotype is attached to a haplotye block supported by
-    read-back phasing, this makes phasing of rare genotypes most accurate, since the likely hoods are provided by other SNPs that are
-    not rare.
+    Yes, it does. But, the rare genotype should be the part (phased to) of phased haplotype blocks. This is one of the good 
+    thing about phase-extender compared to other tools when it come to rare genotype. When several SNPs are phased together 
+    to extend the haplotype, rare genotypes are really hard to phase accurately - the reason being the statistical 
+    significance of the rare genotype belonging to either two phase state is highly ambigous. But, if the rare genotype is 
+    attached to a haplotye block supported by read-back phasing, this makes phasing of rare genotypes most accurate, since 
+    the likely hoods are provided by other SNPs that are not rare.
+    
+   How fast is phase-extender?
+    phase-extender is written in python-3, so it is slower than other tools that are built on the top of C, C++ or java.   
+    Coming from a pure biology background, learning python was one of the most enduring task I have taking and then 
+    building this tool was a big part of my PhD. I have optimized the part of calling VCF file using cyvcf2 (which is on 
+    average 4 times faster than old pyVCF module). phase-extender is also optimized for being able to run on multiple 
+    threads/process. But, if you are running phase-extender on big genome data and have very large number of samples, and    
+    running on laptop I suggest running on one thread, which may be time consuming but will reduce memory burden.
+    
+   Who helped me during the preparation of this program?
+    I have not been very fortunate to surround myself or at least get face to face help from savvy computer programmers.
+    But, my heart is very thankful to people behind the web who have made me capable of working this problem out - Thanks 
+    to many people on biostars, stackoverflow, seqanswer and google web searches.
    
    
 ## Note:
