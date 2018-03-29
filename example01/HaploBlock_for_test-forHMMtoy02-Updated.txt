@@ -1,0 +1,9 @@
+contig	pos	ref	all-alleles	ms01e_PI	ms01e_PG_al	ms02g_PI	ms02g_PG_al	ms03g_PI	ms03g_PG_al	ms04h_PI	ms04h_PG_al	ms05h_PI	ms05h_PG_al	ms06h_PI	ms06h_PG_al
+2	15881764	.	.	4	C|T	6	C|T	7	T|T	7	T|T	7	C|T	7	C|T
+2	15881767	.	.	4	C|C	6	T|C	7	C|C	7	C|C	7	T|C	7	C|C
+2	15881989	.	.	4	C|C	6	A|C	7	C|C	7	C|C	7	A|T	7	A|C
+2	15882091	.	.	4	G|T	6	G|T	7	T|A	7	A|A	7	A|T	7	A|C
+2	15882451	.	.	4	C|T	4	T|C	7	T|T	7	T|T	7	C|T	7	C|A
+2	15882454	.	.	4	C|T	4	T|C	7	T|T	7	T|T	7	C|T	7	C|T
+2	15882493	.	.	4	C|T	4	T|C	7	T|T	7	T|T	7	C|T	7	C|T
+2	15882505	.	.	4	A|T	4	T|A	7	T|T	7	T|T	7	A|C	7	A|T
