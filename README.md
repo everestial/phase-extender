@@ -1,40 +1,43 @@
 # phASE-Extender
 **Extender** for the readbackphased haplotype blocks
-a python program that takes in ReadBack phased haplotypes states across several samples and returns extended haplotype blocks for the sample of interest.
 
-# ReadBackPhased Haplotypes
-Check these links for details on readbackphasing
-- https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_phasing_ReadBackedPhasing.php
-- https://github.com/secastel/phaser/tree/master/phaser
-
-phASE-Extender can be used with the output from GATK pipeline and several other tools that produce readbackphased haplotype blocks. But, the vcf data produced from `phaser` that consists of `PI` and `PI` values in `FORMAT` field is most directly applicable.
+A python program that takes in ReadBack phased haplotypes states across several samples and returns extended haplotype blocks for the sample of interest.
 
 Developed by [Bishwa K. Giri](mailto:bkgiri@uncg.edu, kirannbishwa01@gmail.com) in the [Remington Lab](website?) at the University of North Carolina at Greensboro, Biology department.
-
-Runs on Python 3.x and has the following dependencies:
-- [pandas] (http://pandas.pydata.org/)
-argparse
-collections
-csv
-decimal
-functools
-itertools
-io
-multiprocessing
-numpy
-resource
-time
-io
-matplotlib
 
 # Citation
 Giri, B. K., Remington D. L. Haplotype phase extension and preparation of diploid genome using phase-Extender. biorxiv (2018) [not uploaded yet].
 
 
-# BACKGROUND
-Haplotype phasing is a second go to problem in bioinformatics after read alignment. The importance of haplotype phasing directly applies to analyses of ASE (allele specific expression), preparation of extended haplotype block for EHH (extended haplotype homozygosity) test, preparation of dipolid genome which will soon be a gold standard in bioinformatics in coming years. The necessity for haplotype phasing increases with increase in heterozygosity in the genome, because higher hetetogeneity leads to larger alignment bias and complicates the variants that are called using that alignment data.
+# Intro to ReadBackPhasing
+Check these links for details on readbackphasing
+- https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_phasing_ReadBackedPhasing.php
+- https://github.com/secastel/phaser/tree/master/phaser
 
-For haplotype phasing tools like Beagle, ShapeIT, impute are dominantly used. These tools make use of the variants (SNPs, InDels) along the length of the genome but treat each variants as single observations independent of variant in the consecutive position. So, for a chain of variants at "n" different sites we have "2n" possible haplotype block thus increasing computational burden. With increase in the size of PE reads from illumina and availability of longer sequences from PacBio the issue with "2n" problem can be overcome by preparing several RBphased haplotype blocks. *If we have a pool of several samples that have RBphased haplotypes we can trasfer the phase state information across the samples to solve the state of the consecutive haplotype block in a sample, one at a time.* The proper phase state of two consecutive haplotype blocks (in any one sample) can be solved to prepare the extended haplotype by using haplotype blocks from other samples that bridges that breakpoint. In **phASE-Extender** we use first order markov chain to study and compute the relationship between two consecutive haplotype blocks by preparing first order transition matrix from all the nucleotides of former haplotype block to all the nucelotides in the later haplotype block. We then compute cumulative likelyhood estimate of haplotype states for all possible configuration. But, for two consecutive haplotype blocks there are only two possible configuration. *Therefore the problem comes down the solveing only two haplotype states at once. It is thus possible to extend futher haplotype blocks along the genome. phASE extender actually capitalizes on this later part and uses first order transition probabilities between the consecutive haplotype blocks to calculate the likelhood of one strand from the former block being properly phased with another strand in later block.*
+phASE-Extender can be used with the data (vcf files) produced from GATK pipeline and several other tools that produces readbackphased haplotype blocks - given the input haplotype file meets the appropriate data structure. The vcf data produced from `phaser` consists of `PI` and `PG` values in `FORMAT` field and is the most directly applicable input. See, this example of a [sample input file](https://github.com/everestial/phase-Extender/blob/master/example01/input_haplotype_small.txt) 
+
+
+Runs on Python 3.x and has the following dependencies:
+[pandas](http://pandas.pydata.org/)
+[argparse](https://docs.python.org/3/library/argparse.html)
+[collections](https://docs.python.org/3/library/collections.html?highlight=collections#module-collections)
+[csv](https://docs.python.org/3/library/csv.html?highlight=csv)
+[decimal](https://docs.python.org/3/library/decimal.html?highlight=decimal#module-decimal)
+[functools](https://docs.python.org/3/library/functools.html?highlight=functools)
+[itertools](https://docs.python.org/3/library/itertools.html?highlight=itertools)
+[io](https://docs.python.org/3/library/io.html?highlight=io#module-io)
+[multiprocessing](https://docs.python.org/3/library/multiprocessing.html?highlight=multiprocessing#)
+[numpy](http://www.numpy.org/, http://cs231n.github.io/python-numpy-tutorial/)
+[resource](https://docs.python.org/3/library/resource.html?highlight=resource#module-resource)
+[time](https://docs.python.org/3/library/time.html?highlight=time#module-time)
+[matplotlib](https://matplotlib.org/2.2.2/index.html)
+
+
+
+# BACKGROUND
+Haplotype phasing is a second go to problem in bioinformatics after read alignment. The importance of haplotype phasing applies directly to the analyses of ASE (allele specific expression), preparation of extended haplotype block for EHH (extended haplotype homozygosity) test, and preparation of dipolid genome which will soon be a gold standard in bioinformatics in coming years, etc. The necessity for haplotype phasing (and diploid genome) increases with the increase in heterozygosity in the genome, because higher hetetogeneity leads to larger alignment bias and complicates the reliability of the variants that are called using that alignment data (SAM, BAM files).
+
+For haplotype phasing tools like Beagle, ShapeIT, impute are used dominantly. These tools make use of the variants (SNPs, InDels) along the length of the genome but treat each variants as single observations independent of variant in the consecutive position. So, for a chain of variants at "n" different sites there exists "2^n" possible haplotypes, thereby increasing the computational burden. With increase in the size of PE reads from illumina and availability of longer sequences from PacBio the issue with "2^n" problem can be overcome by preparing several RBphased haplotype blocks and joining two consecutive blocks at one time. *So, if we have a pool of several samples that have RBphased haplotypes, each sample will have several breakpoints (genomic position) which mostly don't overlap with other samples. We can solve the phase state between two consecutive blocks (of one sample at a time) by computing the likely hood of the phase state (parallel vs. alternate configuration) using the phase state in other samples as the observation in that breakpoint position.             comparing the nformation among the samples to solve the state of the consecutive haplotype block in a sample, one at a time.* The proper phase state of two consecutive haplotype blocks (in any one sample) can be solved to prepare the extended haplotype by using haplotype blocks from other samples that bridges that breakpoint. In **phASE-Extender** we use first order markov chain to study and compute the relationship between two consecutive haplotype blocks by preparing first order transition matrix from all the nucleotides of former haplotype block to all the nucelotides in the later haplotype block. We then compute cumulative likelyhood estimate of haplotype states for all possible configuration. But, for two consecutive haplotype blocks there are only two possible configuration. *Therefore the problem comes down the solveing only two haplotype states at once. It is thus possible to extend futher haplotype blocks along the genome. phASE extender actually capitalizes on this later part and uses first order transition probabilities between the consecutive haplotype blocks to calculate the likelhood of one strand from the former block being properly phased with another strand in later block.*
 
 ReadBackphasing is slowly emerging as a replacement for prepration of long range haplotypes; see tools [WhatsHap] (https://whatshap.readthedocs.io/en/latest/), [hapCut] (https://github.com/vibansal/hapcut), [phaser] (https://github.com/secastel/phaser/blob/master/phaser/README.md). The issue remains though, that these tools prepare the RBPhased haplotype blocks based on multiple input "BAM" and "VCF" files for a single sample and/or trios. Also, the increase on RBphase states depends upon multiple BAM files, or multiple sets of longer reads from same individual.For specimen that don't have multiple genomic and rna sources, reference haplotype panel, these method is only possible to yield short range haplotypes. Further it is not possible to transfer phase information across population of samples using these tools there for limiting long range and genome wide haplotype in emerging research models.  phASE-Extender overcomes these limitations by using the short range RBphased haplotype blocks from several samples that have several haplotype break points. But, usually the haplotype break point in one sample is bridged by RBphased haplotype blocks in several other samples in that pool. Thus it is possible to solve the haplotype breakpoints by transfering the phase information between closely and distantly related samples. 
 
