@@ -3,7 +3,7 @@
 
 A python program that takes in ReadBack phased haplotypes states across several samples and returns extended haplotype blocks for the sample of interest.
 
-Developed by [Bishwa K. Giri](mailto:bkgiri@uncg.edu, kirannbishwa01@gmail.com) in the [Remington Lab](website?) at the University of North Carolina at Greensboro, Biology department.
+Developed by [Bishwa K. Giri](mailto:kirannbishwa01@gmail.com) in the [Remington Lab](website?) at the University of North Carolina at Greensboro, Biology department.
 
 # Citation
 Giri, B. K., Remington D. L. Haplotype phase extension and preparation of diploid genome using phase-Extender. biorxiv (2018) [not uploaded yet].
