@@ -140,39 +140,23 @@ parameters in this file ??
 
 ## **some**.plot.png
 
-
+# Recursive application of haplotype phase extension
+  **phase-Extender** is designed to create long range haplotyes (and possible GW haplotype) in pool of samples. Owing to it's RBphased method which contains information from multiple SNP position, it can configure proper haplotype extension even with small number of samples which is important in emerging research models. phase-Extender also provides the benefit of allowing the user to control haplotype extension by allowing fexible values in parameters `snpTh`, `minHets`, `log2Odds cut off`. This way a user provide a more flexible means of controlling the phase extension. 
+  
+  ***phase-Extender maynot be able to prepare a full length genotype in one run.*** This is not the limitation but rather a intended feature in this tool. The reason is to provide flexibility and allow the user to control phase extension. A controllable haplotype extension is largely required method for phase extension in emerging research model owing to resource scarcity. The main idea is to first run **phase-Extender** with higher `log2Odds cut off` for several samples. Then merge the output of each sample to run another round of **phase extension** with concessive (lower) `log2Odds cut off`. So, when applied recursively we reduced the number of haplotypes and increase the length of haplotypes in each chromosome.
+  
+  So, controllable haplotype extension is a novel feature intended in **phase-Extender**. A full length recursive phase extension is illustrated in this link [phase Extender on recursive mode](some website??) using the bash script.
+  
+  
 
 
 
 # Some Q/A on phase-extender: 
 
-  **1) How is phase Extender different than other gw (genome wide), cw (chromosome wide) haplotype phasing program ?**
-  
-    The very first important thing in genomics and transcriptomics is alignment. While there has been quite some improvements 
-    in alinment algorithms and which still continues, another field of genomics that has utmost importance is haplotype phasing - 
-    which includes organizing the called variants accurately among each other. So, phasing represents another era of improvements
-    in genomics techonology and application. 
-    Most, of the haplotype phasing tools are mostly built with human genome (modern and ancient) in mind,but they do benefit 
-    other ogranism which have similar level of genomic resources. They rely moslty on huge amount of genotype data and available 
-    haplotype reference panel which are not readily available for other organisms. Also, these tools mainly aim for genome wide 
-    haplotype, which is of least concern for emerging models. Rather solving the complete phase state within a gene, 
-    transcriptome or region of interest is more crucial. 
-    Most phasing tools solve the haplotype state problem by taking in SNPs data from multiple samples, then it tries to solve the 
-    phase state for one sample by preparing a haplotype that can possibly give rise to all other possible haplotype 
-    configurations. Recent advancement in haplotype phasing has started involving "ReadBackPhased" haplotypes. But, most of the
-    tools are geared toward connecting the phase state by sequencing different tissues from sample (citation ... ?). However, 
-    it is possible to solve the phase state between two haplotype blocks if the position they are broken at is covered by 
-    RBPhased haplotyes in other related samples. 
+  **_1) What kind of algorithm does phase-extender use ?_**  
+    phase-extender uses first-order-transition probabilities from each level of genotypes from former haplotype block to each level of genotypes to later haplotype block. This version (v1) uses **forward-1stOrder-markov chains** and **backward-1stOrder-markov chains** transition probabilities. Future versions will follow improvements by adding markov-chains of higher order.    
     
-    
-  **2) What kind of algorithm does phase-extender use ?**
-  
-    phase-extender uses first-order-transition probabilities from each level of genotypes from former haplotype 
-    block to each level of genotypes to later haplotype block. At the moment phase-extender only uses **forward-1stOrder-markov chains** transition probabilities. I soon plan to improve the algorithm by adding **backward-1stOrder-markov chains** 
-    transition probabilities. These may follow improvements by adding markov-chains of higher order.
-    
-    
-   **3) What is the advantage of using phase-extender ?**
+   **2) What is the advantage of using phase-extender ?**
    
     We generally need accurate phase state with in a gene/transcript level while doing ASE, dissecting maternal-paternal effects.  
     Long haplotypes are mostly important while preparing diploid genome, long range haplotype for testing selective sweeps, 
