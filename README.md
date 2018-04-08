@@ -1,6 +1,6 @@
 # phASE-Extender
-**Extender** for the readbackphased haplotype blocks.
-***a python program to extend the ReadBackPhased haplotype blocks using first order transition probabilities.***
+**Extender** for the readbackphased haplotype blocks.\
+***A python program to extend the ReadBackPhased haplotype blocks using first order transition probabilities.***
 
 Developed by [Bishwa K. Giri](mailto:kirannbishwa01@gmail.com) in the [Remington Lab](website?) at the University of North Carolina at Greensboro, Biology department.
 
@@ -16,19 +16,19 @@ Giri, B. K., Remington D. L. Haplotype phase extension and preparation of diploi
 
 **Runs on `Python 3.x` and has the following dependencies:**
 
-[pandas](http://pandas.pydata.org/)
-[argparse](https://docs.python.org/3/library/argparse.html)
-[collections](https://docs.python.org/3/library/collections.html?highlight=collections#module-collections)
-[csv](https://docs.python.org/3/library/csv.html?highlight=csv)
-[decimal](https://docs.python.org/3/library/decimal.html?highlight=decimal#module-decimal)
-[functools](https://docs.python.org/3/library/functools.html?highlight=functools)
-[itertools](https://docs.python.org/3/library/itertools.html?highlight=itertools)
-[io](https://docs.python.org/3/library/io.html?highlight=io#module-io)
-[multiprocessing](https://docs.python.org/3/library/multiprocessing.html?highlight=multiprocessing#)
-[numpy](http://www.numpy.org/, http://cs231n.github.io/python-numpy-tutorial/)
-[resource](https://docs.python.org/3/library/resource.html?highlight=resource#module-resource)
-[time](https://docs.python.org/3/library/time.html?highlight=time#module-time)
-[matplotlib](https://matplotlib.org/2.2.2/index.html)
+  - [pandas](http://pandas.pydata.org/)
+  - [argparse](https://docs.python.org/3/library/argparse.html)
+  - [collections](https://docs.python.org/3/library/collections.html?highlight=collections#module-collections)
+  - [csv](https://docs.python.org/3/library/csv.html?highlight=csv)
+  - [decimal](https://docs.python.org/3/library/decimal.html?highlight=decimal#module-decimal)
+  - [functools](https://docs.python.org/3/library/functools.html?highlight=functools)
+  - [itertools](https://docs.python.org/3/library/itertools.html?highlight=itertools)
+  - [io](https://docs.python.org/3/library/io.html?highlight=io#module-io)
+  - [multiprocessing](https://docs.python.org/3/library/multiprocessing.html?highlight=multiprocessing#)
+  - [numpy](http://www.numpy.org/), `http://cs231n.github.io/python-numpy-tutorial/`
+  - [resource](https://docs.python.org/3/library/resource.html?highlight=resource#module-resource)
+  - [time](https://docs.python.org/3/library/time.html?highlight=time#module-time)
+  - [matplotlib](https://matplotlib.org/2.2.2/index.html)
 
 
 
