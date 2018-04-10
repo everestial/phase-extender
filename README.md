@@ -73,42 +73,64 @@ For the **mcve** regarding the algorithm see this issue on **stackoverflow** htt
 
 
 
-## Tutorial
+# Tutorial
 
-# Setup
+## Setup
 **phase-Extender** is written in python3 interpreter. So, it can be directly run using the **".py"** file, given all the required modules are installed.
 
-# Usage
+## Usage
 Requires a VCF file or a haplotype file as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
 
-## Step 01: 
+## Step 01: ** to complete ??
+Prepare required files.
 
-  - VCF to input haplotype file: VCF file from `phaser` can be converted to haplotype file using the python parser `vcf_to_table-v2.py**`. 
+* 1 **Convert VCF to haplotype file:**
 
-    vcf_to_table-v2.py --vcf a_vcf_file.vcf --out a_haploype_file.txt
+    vcf_to_table-v2.py --vcf a_vcf_file.vcf --out haploype_file.txt 
+    
     vcf_to_table-v2.py --mode VcfToHap --PI PI --PG PG --vcf a_vcf_file.vcf --out a_haploype_file.txt
     
-  - reference panel (VCF) to reference panel (haplotype)
+* 2 **Convert haplotype reference panel (VCF) to haplotype file:**
   
-    vcf_to_table-v2.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt  
+    `vcf_to_table-v2.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt`
     
 `--unphased yes` can be added to above command to also included the genotypes that have unphased state. This parameter will not affect the phase extension, and is only included to keep the whole data intact.
     
 
 ## Step 02:
-**This step can be done directly if input haplotype has required data format**
+Run phase-Extender.
     
-**Test case 01 - ** Using file from [example 01](https://github.com/everestial/phase-Extender/tree/master/example01)
+**Test case 01 (with minimal parameters)-**
+All, other parameters are set at default. 
+Use data from [example 01](https://github.com/everestial/phase-Extender/tree/master/example01)
 
-Run command (with minimal inputs):
+    python3 phase_extender_v1-final.py --input haplotype_file_test01.txt --SOI ms02g
+    
+Output is stored in directory `ms02g_extended\`.
 
-    python3 phase_extender_v1-final.py --input input_haplotype_small.txt --SOI ms02g 
 
-**Test case 02 - ** Using file from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
+**Test case 02 (multiple cases)-** 
+Use data from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
 
-Run command: ** complete ??
+    # use 2 processes, 25 Het sites for transition matrix
+    # lods cutoff 10 and output descriptive statistics of the haplotype    
+    python3 phase_extender_v1-final.py --nt 2 --input haplotype_file_test02.txt --SOI ms02g --numHets 25 --culLH maxPd --hapStats yes --lods 10
+    
+    # Output is stored in directory `ms02g_extended\`.
+    
+    # assign output to different directory
+    python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g --output my_test
+    # Output is stored in directory `my_test\`.
+    
+    # add "Reference Haplotype Panel" to the run
+    python3 phase_extender_v1-final.py --nt 2 --input haplotype_file_test02.txt --SOI ms02g --numHets 25 --culLH maxPd --hapStats yes --refHap refPanel_lyrata_test02.txt
+    
+    # add "bed file" to the run
+    python3 phase_extender_v1-final.py --nt 1 --input haplotype_file_test02.txt --SOI ms02g --numHets 25 --culLH maxPd --hapStats yes --refHap refPanel_lyrata_test02.txt --bed bed_boundries.bed
 
-    python3 phase_extender_v1-final.py --input input_haplotype_small.txt --SOI ms02g 
+
+
+    
     
 **Additional input files **
 
@@ -149,21 +171,9 @@ To convert the GTF,GFF to bed file for appropriate GTF,GFF feature use:  ** comp
 
 # Output Files
 
-## initial_haplotype_*SOI*.txt
+## initial_haplotype_*SOI*.txt and extended_haplotype_*SOI*.txt
 
-Contains all RBphased haplotype data for the sample of interest.
-
-* 1 - **contig** - Contig name (or number).
-* 2 - **pos** - Start position of haplotype (1 based).
-* 3 - **ref** - Reference allele at that site.
-* 4 - **all-alleles** - All the alleles represented by all the samples at that site.
-* 5 - **SOI_PI** - Unique `PI` index of the haplotype blocks for sample of interest.
-* 6 - **SOI_PG_al** - Phased GT (genotype) alleles at the genomic position that belong to unique `PI` indexes.
-
-
-## extended_haplotype_*SOI*.txt
-
-Contains all RBphased haplotype data (after phase extension) for the sample of interest.
+Contains all RBphased haplotype data for the sample of interest before and after phase extension.
 
 * 1 - **contig** - Contig name (or number).
 * 2 - **pos** - Start position of haplotype (1 based).
@@ -171,11 +181,11 @@ Contains all RBphased haplotype data (after phase extension) for the sample of i
 * 4 - **all-alleles** - All the alleles represented by all the samples at that site.
 * 5 - **SOI_PI** - Unique `PI` index of the haplotype blocks for sample of interest.
 * 6 - **SOI_PG_al** - Phased GT (genotype) alleles at the genomic position that belong to unique `PI` indexes.
-* 7 - **log2Odds** - log2Odds computed between the former and later block.
+* 7 - **log2Odds** (only in **extended_haplotype_SOI.txt**) - log2Odds computed between the former and later block.
 
 
-## initial_haplotype_stats_*SOI*.txt
-**Note:** - The `SOI_PI`, and the associated statistics are in order.
+## initial_haplotype_stats_*SOI*.txt and final_haplotype_stats_*SOI*.txt
+**Note:** - The `SOI_PI`, and it's associated statistics are in order.
 
 Descriptive haplotype statistics of the input haplotype file for the sample of interest.
 
@@ -187,34 +197,20 @@ Descriptive haplotype statistics of the input haplotype file for the sample of i
 * 6 - **total_Vars** - Total number of variant sites in the given contig for the sample of interest. **Note:** The sum of (num_Vars_by_PI) = total_Vars.
 
 
-## final_haplotype_stats_*SOI*.txt
-
-Descriptive haplotype statistics of the extended haplotype file for the sample of interest.
-
-* 1 - **contig** - Contig name (or number).
-* 2 - **SOI_PI** - Comma separated list of unique `PI` index of the haplotype blocks for the sample of interest. The total number of `PI` index represents the total number of haplotype fragments that are present in the given contig in that sample.
-* 3 - **num_Vars_by_PI** - Number of variants sites within each `PI` block for the sample of interest. 
-* 4 - **range_of_PI** - Genomic range of the each `PI` block for the sample of interest.
-* 5 - **total_haplotypes** - Total number of haplotype (i.e `PI`) in the given coting for the sample of interest.
-* 6 - **total_Vars** - Total number of variant sites in the given contig for the sample of interest. **Note:** The sum of (num_Vars_by_PI) = total_Vars.
-
 ## missingdata_*SOI*.txt
 
 Contains data from the sites that have unphased GT (genotype) for the sample of interest in the input haplotype file. **Note:** This data is merged with `extended_haplotype_SOI.txt` if `--onlyPhasedSites` is set to "no".
 
 # Plots
-**Note:** - These plots are based on the descriptive statistics generated for haplotypes before and after phase extension. It is also possible to take these statistics and make custom plots in **R** or other methods.
+**Note:** - These plots are based on the descriptive statistics generated for haplotypes before and after phase extension. It is also possible to take these statistics and make custom plots in **R** or using other methods.
 
 ## total_haps_*SOI*_initial.png  and total_haps_*SOI*_final.png
-
 Number of haplotypes for given contig before and after phase extension. 
 
 ## total_vars_*SOI*_initial.png  and total_vars_*SOI*_final.png
-
 Number of variants for given contig before and after phase extension. 
 
 ## hap_size_byVar_*SOI*_initial.png and hap_size_byVar_*SOI*_final.png
-
 Histogram of the distribution of the haplotypes by number of variants in each haplotypes in given contig before and after phase extension. 
 
 
@@ -229,7 +225,7 @@ Histogram of the distribution of the haplotypes by number of variants in each ha
 
 
 
-# Some Q/A on phase-extender: 
+# Some Q/A on phase-extender - to complete ??? : 
 
   **_1) What kind of algorithm does phase-extender use ?_**  
     phase-extender uses first-order-transition probabilities from each level of genotypes from former haplotype block to each level of genotypes to later haplotype block. This version (v1) uses **forward-1stOrder-markov chains** and **backward-1stOrder-markov chains** transition probabilities. Future versions will follow improvements by adding markov-chains of higher order.    
