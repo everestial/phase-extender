@@ -133,41 +133,95 @@ To convert the GTF,GFF to bed file for appropriate GTF,GFF feature use:  ** comp
 * **--nt** _(1)_ - maximum number of processes to run at once. The maximum number of processes is limited to number of chromosomes (contigs) in the input haplotype file. 
 
 ## Optional
-* **--python_string** _(python3)_ - Command to use when calling python, required for running.
+* **--python_string** _(python3)_ - Calls `python 3` interpreter to run the program.
 * **--output** _(SOI_extended)_ - Output directory. 
 * **--snpTh** _(3)_ - snp threshold. Minimum number of SNPs required in each consecutive haplotype block to run phase extension between two blocks.
-* **--numHets** _(40)_ - num of heterozygotes. Maximum number of heterozygote sites used from each consecutive block to compute maximum likelihood estimate for each configuration between two blocks.
-* **--culLH** _(maxPd)_ - cumulation of the likelihood estimates. The likelhoods for two possible configuration can either be maxed as sum  or maxed as product. Default is max-product. Options: 'maxPd' or 'maxSum'.
-* **--lods** _(5)_ - log2 of Odds cut off. The cutoff threshold used to extend consecutive haplotype blocks. **Note: Default value is set at (2^5 = 32). So, two consecutive blocks will be joined in parallel configuration if default lods-score is used.**
-* **--useSample** _(all)_ - Samples to use in the given input haplotype file (+ reference haplotype) to compute transition matrix. Options: 'all','refHap','input','comma separated name of samples'. Default: all the samples in (refHap + input) will be used.
-* **--bed** - Process the haplotype extension only in this bed regions. ***This is useful if you want to limit haplotype extension only within certain regions, like - within genes, exons, introns, QTL, etc.*** 
+* **--numHets** _(40)_ - num of heterozygotes. Maximum number of heterozygote SNPs used from each consecutive block to compute maximum likelihood estimate of each configuration between two blocks.
+* **--culLH** _(maxPd)_ - cumulation of the likelihood estimates. The likelhoods for two possible configuration can either be "maxed as sum" or "maxed as product". ***Default*** is "max-product". ***Options:*** 'maxPd' or 'maxSum'.
+* **--lods** _(5)_ - log2 of Odds cut off. The cutoff threshold used to extend consecutive haplotype blocks. **`**Note: Default value is set at (2^5 = 32). So, two consecutive blocks will be joined in parallel configuration if compute log2(likelihood) > default lods **
+* **--useSample** _(all)_ - Samples to use in the given input haplotype file (plus reference haplotype) to compute transition matrix. Options: 'all','refHap','input','comma separated name of samples'. Default: all the samples in (refHap + input) will be used.
+* **--bed** - Process the haplotype extension only in this bed regions. ***This is useful if you want to limit haplotype extension only within certain regions, like - within genes, exons, introns, QTL boundries, etc.*** 
+* **--writeLOD** _(no)_ - writes the calculate LODs between two consecutive haplotype blocks when processing phase extension to the output file. **Options:** 'yes', 'no'. **`**Note: the 'lods-score' are printed regardless if the "
+"consecutive blocks are joined or not.**
+* **--hapStats** _(no)_ - Prepare descriptive statistics, and histogram of the haplotype size distribution of the input haplotype file vs. extended haplotype for the sample of interest. **Options:** 'yes', 'no'
+* **--onlyPhasedSites** _(yes)_ - include the non-phased genotype data from input haplotype file to the output file. **Option:** 'yes', 'no'.
 
 
 # Output Files
 
-## *out_prefix*.haplotypes.txt
+## initial_haplotype_*SOI*.txt
 
-Contains all haplotypes phased along with detailed phasing statistics.
+Contains all RBphased haplotype data for the sample of interest.
 
-* 1 - **contig** - Contig haplotype is found on.
-
-
-
-
-
-## **initial**.hapstats
-parameters in this file ??
-
-## **initial**.hapstats
-parameters in this file ??
+* 1 - **contig** - Contig name (or number).
+* 2 - **pos** - Start position of haplotype (1 based).
+* 3 - **ref** - Reference allele at that site.
+* 4 - **all-alleles** - All the alleles represented by all the samples at that site.
+* 5 - **SOI_PI** - Unique `PI` index of the haplotype blocks for sample of interest.
+* 6 - **SOI_PG_al** - Phased GT (genotype) alleles at the genomic position that belong to unique `PI` indexes.
 
 
-## **some**.plot.png
+## extended_haplotype_*SOI*.txt
 
-# Recursive application of haplotype phase extension
-  **phase-Extender** is designed to create long range haplotyes (and possible GW haplotype) in pool of samples. Owing to it's RBphased method which contains information from multiple SNP position, it can configure proper haplotype extension even with small number of samples which is important in emerging research models. phase-Extender also provides the benefit of allowing the user to control haplotype extension by allowing fexible values in parameters `snpTh`, `minHets`, `log2Odds cut off`. This way a user provide a more flexible means of controlling the phase extension. 
-  
-  ***phase-Extender maynot be able to prepare a full length genotype in one run.*** This is not the limitation but rather a intended feature in this tool. The reason is to provide flexibility and allow the user to control phase extension. A controllable haplotype extension is largely required method for phase extension in emerging research model owing to resource scarcity. The main idea is to first run **phase-Extender** with higher `log2Odds cut off` for several samples. Then merge the output of each sample to run another round of **phase extension** with concessive (lower) `log2Odds cut off`. So, when applied recursively we reduced the number of haplotypes and increase the length of haplotypes in each chromosome.
+Contains all RBphased haplotype data (after phase extension) for the sample of interest.
+
+* 1 - **contig** - Contig name (or number).
+* 2 - **pos** - Start position of haplotype (1 based).
+* 3 - **ref** - Reference allele at that site.
+* 4 - **all-alleles** - All the alleles represented by all the samples at that site.
+* 5 - **SOI_PI** - Unique `PI` index of the haplotype blocks for sample of interest.
+* 6 - **SOI_PG_al** - Phased GT (genotype) alleles at the genomic position that belong to unique `PI` indexes.
+* 7 - **log2Odds** - log2Odds computed between the former and later block.
+
+
+## initial_haplotype_stats_*SOI*.txt
+**Note:** - The `SOI_PI`, and the associated statistics are in order.
+
+Descriptive haplotype statistics of the input haplotype file for the sample of interest.
+
+* 1 - **contig** - Contig name (or number).
+* 2 - **SOI_PI** - Comma separated list of unique `PI` index of the haplotype blocks for the sample of interest. The total number of `PI` index represents the total number of haplotype fragments that are present in the given contig in that sample.
+* 3 - **num_Vars_by_PI** - Number of variants sites within each `PI` block for the sample of interest. 
+* 4 - **range_of_PI** - Genomic range of the each `PI` block for the sample of interest.
+* 5 - **total_haplotypes** - Total number of haplotype (i.e `PI`) in the given coting for the sample of interest.
+* 6 - **total_Vars** - Total number of variant sites in the given contig for the sample of interest. **Note:** The sum of (num_Vars_by_PI) = total_Vars.
+
+
+## final_haplotype_stats_*SOI*.txt
+
+Descriptive haplotype statistics of the extended haplotype file for the sample of interest.
+
+* 1 - **contig** - Contig name (or number).
+* 2 - **SOI_PI** - Comma separated list of unique `PI` index of the haplotype blocks for the sample of interest. The total number of `PI` index represents the total number of haplotype fragments that are present in the given contig in that sample.
+* 3 - **num_Vars_by_PI** - Number of variants sites within each `PI` block for the sample of interest. 
+* 4 - **range_of_PI** - Genomic range of the each `PI` block for the sample of interest.
+* 5 - **total_haplotypes** - Total number of haplotype (i.e `PI`) in the given coting for the sample of interest.
+* 6 - **total_Vars** - Total number of variant sites in the given contig for the sample of interest. **Note:** The sum of (num_Vars_by_PI) = total_Vars.
+
+## missingdata_*SOI*.txt
+
+Contains data from the sites that have unphased GT (genotype) for the sample of interest in the input haplotype file. **Note:** This data is merged with `extended_haplotype_SOI.txt` if `--onlyPhasedSites` is set to "no".
+
+# Plots
+**Note:** - These plots are based on the descriptive statistics generated for haplotypes before and after phase extension. It is also possible to take these statistics and make custom plots in **R** or other methods.
+
+## total_haps_*SOI*_initial.png  and total_haps_*SOI*_final.png
+
+Number of haplotypes for given contig before and after phase extension. 
+
+## total_vars_*SOI*_initial.png  and total_vars_*SOI*_final.png
+
+Number of variants for given contig before and after phase extension. 
+
+## hap_size_byVar_*SOI*_initial.png and hap_size_byVar_*SOI*_final.png
+
+Histogram of the distribution of the haplotypes by number of variants in each haplotypes in given contig before and after phase extension. 
+
+
+**phase-Extender** is designed to create long range haplotyes (and possible GW haplotype) using haplotype file created from multisample VCF. Owing to it's RBphased method which contains information from multiple SNP position, it can solve proper haplotype state even with small number of samples which is important in emerging research models. phase-Extender also provides the benefit of allowing the user to control haplotype extension by allowing fexible values in parameters `snpTh`, `minHets`, `log2Odds cut off`, `useSample`, `bed`. This way a user provide a more flexible means of controlling the phase extension. 
+
+# Recursive application of haplotype phase extension  
+  ***phase-Extender maynot be able to prepare a full length phased haplotype in one run.*** This is not the limitation but rather a intended feature in this tool. The reason is to provide flexibility and allow the user to control phase extension. A controllable haplotype extension is largely required method for phase extension in emerging research model owing to resource scarcity. The main idea is to first run **phase-Extender** with higher `log2Odds cut off` for several samples. Then merge the output of each sample to run another round of **phase extension** with concessive (lower) `log2Odds cut off`. So, when applied recursively we reduced the number of haplotypes and increase the length of haplotypes in each chromosome.
   
   So, controllable haplotype extension is a novel feature intended in **phase-Extender**. A full length recursive phase extension is illustrated in this link [phase Extender on recursive mode](some website??) using the bash script.
   
