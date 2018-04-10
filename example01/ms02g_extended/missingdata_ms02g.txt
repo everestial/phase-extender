@@ -1,0 +1,1 @@
+contig	pos	ref	all-alleles	ms01e_PI	ms01e_PG_al	ms02g_PI	ms02g_PG_al	ms03g_PI	ms03g_PG_al	ms04h_PI	ms04h_PG_al	ms05h_PI	ms05h_PG_al	ms06h_PI	ms06h_PG_al
