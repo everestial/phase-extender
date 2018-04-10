@@ -60,9 +60,9 @@ So, **phase-Extender** can be used with any RBphased input haplotype file given 
 
 ## Input data
 
-**phASE-Extender** can be used with the multi-sample vcf files produced by GATK pipeline or several other tools that generate readbackphased haplotype blocks in the output VCF. A haplotype file is created using the RBphased VCF and then piped into **phase-Extender**. See, this example of a [sample input haplotype file](https://github.com/everestial/phase-Extender/blob/master/example01/input_haplotype_small.txt) - a tab separated text file with `PI` and `PG_al` value for each samples.
+**phASE-Extender** can be used with the multi-sample vcf files produced by GATK pipeline or several other tools that generate readbackphased haplotype blocks in the output VCF. A haplotype file is created using the RBphased VCF and then piped into **phase-Extender**. See, this example for data structure of input haplotype file [sample input haplotype file01](https://github.com/everestial/phase-Extender/blob/master/example01/input_haplotype_small.txt) - a tab separated text file with `PI` and `PG_al` value for each samples.
 
-In the several example (test) files I havve used RBphased VCF produced by `phaser` (https://github.com/secastel/phaser , https://github.com/secastel/phaser/tree/master/phaser) that consists of `Phased Genotype i.e PG` and `Phase Block Index i.e PI` values in `FORMAT` field. PI represents the unique haplotype block index (or key) in the given VCF files and PG represents the phased genotypes within that PI block. **phase-Extender** then uses the `Phased Genotype i.e PG` and `Phase Block Index i.e PI` values to prepare the transition matrix. 
+In several tutorial examples (test files below) I have used hapotype file prepared from RBphased VCF produced by `phaser` (https://github.com/secastel/phaser , https://github.com/secastel/phaser/tree/master/phaser). VCF from `phaser` consists of `Phased Genotype i.e PG` and `Phase Block Index i.e PI` values in `FORMAT` field; **PI** represents the unique haplotype block index (or key) and **PG** represents the phased genotypes within that PI block. This VCF can be converted into haplotype file using the add-on tool `something something`. **phase-Extender** uses the `Phased Genotype i.e PG` and `Phase Block Index i.e PI` values in the haplotype file to prepare the transition matrix. 
 
 So, it is crucial to run **phaser** on your VCF of interest before running phase extension or prepare the "input haplotype file" in appropriate format to pipe it in **phase-Extender**.
 
@@ -79,25 +79,32 @@ For the **mcve** regarding the algorithm see this issue on **stackoverflow** htt
 **phase-Extender** is written in python3 interpreter. So, it can be directly run using the **".py"** file, given all the required modules are installed.
 
 # Usage
-Requires a VCF file or a haplotype file as input and returns a extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control on the phase extension.
+Requires a VCF file or a haplotype file as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
 
-VCF file from `phaser` can be converted to haplotype file using the python parser `vcf_to_table-v2.py`. 
+## Step 01: 
+
+  - VCF to input haplotype file: VCF file from `phaser` can be converted to haplotype file using the python parser `vcf_to_table-v2.py**`. 
 
     vcf_to_table-v2.py --vcf a_vcf_file.vcf --out a_haploype_file.txt
+    vcf_to_table-v2.py --mode VcfToHap --PI PI --PG PG --vcf a_vcf_file.vcf --out a_haploype_file.txt
+    
+  - reference panel (VCF) to reference panel (haplotype)
+  
+    vcf_to_table-v2.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt  
     
 `--unphased yes` can be added to above command to also included the genotypes that have unphased state. This parameter will not affect the phase extension, and is only included to keep the whole data intact.
     
-**Test case 01**
 
-Using file from [example 01](https://github.com/everestial/phase-Extender/tree/master/example01)
+## Step 02:
+**This step can be done directly if input haplotype has required data format**
+    
+**Test case 01 - ** Using file from [example 01](https://github.com/everestial/phase-Extender/tree/master/example01)
 
-Run command:
+Run command (with minimal inputs):
 
     python3 phase_extender_v1-final.py --input input_haplotype_small.txt --SOI ms02g 
 
-**Test case 02**
-
-Using file from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
+**Test case 02 - ** Using file from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
 
 Run command: ** complete ??
 
@@ -107,9 +114,9 @@ Run command: ** complete ??
 
 ***haplotype reference panel:*** If your goal is to use reference haplotype panel, we suggest providing the haplotype reference panel with same data structure as input haplotype file.
 
-To convert the haplotype reference panel (from VCF to proper text format) use: ** complete ?? **
+To convert the haplotype reference panel (from VCF to proper text format) use above command: ** complete ?? **
 
-    python3 hapRefVCFtoTxt.py --input hapRef.vcf --out  
+    vcf_to_table-v2.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt  
   
 ***bed file:*** If you goal is to limit phase extension to certain genomic regions (for eg. gene, exon or QTL boundries), we suggest that you provide appropriate bed file. Remember, **phase-Extender** is exclusively limited to bed regions.   
 
@@ -119,16 +126,21 @@ To convert the GTF,GFF to bed file for appropriate GTF,GFF feature use:  ** comp
     
 # Arguments
 ## Required
-* **--bam** - Comma separated list of BAM files containing reads. Duplicates should be marked, and files should be indexed using samtools index.
-
-# Optional
-* **--python_string** _(python2.7)_ - Command to use when calling python, required for running
-
+* **--input** - input haplotype file. `PI` and `PG_al` should be present in header for each sample.
+* **--SOI** - sample of interest. It should refer to a single sample in the haplotype the file. The sample name should not contain "`_`" character. 
 
 ## Performance Related
-* **--nt** _(1)_ - Maximum number of processes to run at once
-snpTh
-numHets
+* **--nt** _(1)_ - maximum number of processes to run at once. The maximum number of processes is limited to number of chromosomes (contigs) in the input haplotype file. 
+
+## Optional
+* **--python_string** _(python3)_ - Command to use when calling python, required for running.
+* **--output** _(SOI_extended)_ - Output directory. 
+* **--snpTh** _(3)_ - snp threshold. Minimum number of SNPs required in each consecutive haplotype block to run phase extension between two blocks.
+* **--numHets** _(40)_ - num of heterozygotes. Maximum number of heterozygote sites used from each consecutive block to compute maximum likelihood estimate for each configuration between two blocks.
+* **--culLH** _(maxPd)_ - cumulation of the likelihood estimates. The likelhoods for two possible configuration can either be maxed as sum  or maxed as product. Default is max-product. Options: 'maxPd' or 'maxSum'.
+* **--lods** _(5)_ - log2 of Odds cut off. The cutoff threshold used to extend consecutive haplotype blocks. **Note: Default value is set at (2^5 = 32). So, two consecutive blocks will be joined in parallel configuration if default lods-score is used.**
+* **--useSample** _(all)_ - Samples to use in the given input haplotype file (+ reference haplotype) to compute transition matrix. Options: 'all','refHap','input','comma separated name of samples'. Default: all the samples in (refHap + input) will be used.
+* **--bed** - Process the haplotype extension only in this bed regions. ***This is useful if you want to limit haplotype extension only within certain regions, like - within genes, exons, introns, QTL, etc.*** 
 
 
 # Output Files
