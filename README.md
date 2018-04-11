@@ -90,6 +90,9 @@ Prepare required files.
     
     vcf_to_table-v2.py --mode VcfToHap --PI PI --PG PG --vcf a_vcf_file.vcf --out a_haploype_file.txt
     
+    # new one ??
+    python3 vcf_to_table-v3.py --mode VcfToHap --vcf allele_table_for_phase_extender.txt --out RBphased_HaploBlock02.txt --PG PG --PI PI
+    
 * 2 **Convert haplotype reference panel (VCF) to haplotype file:**
   
     `vcf_to_table-v2.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt`
@@ -100,16 +103,19 @@ Prepare required files.
 ## Step 02:
 Run phase-Extender.
     
-**Test case 01 (with minimal parameters)-**
-All, other parameters are set at default. 
+**Test case 01 (with minimal parameters) -**\
+All, other parameters are set at default. \
 Use data from [example 01](https://github.com/everestial/phase-Extender/tree/master/example01)
 
     python3 phase_extender_v1-final.py --input haplotype_file_test01.txt --SOI ms02g
     
+    # to include LOD between two blocks
+    python3 phase_extender_v1-final.py --input haplotype_file_test01.txt --SOI ms02g --writeLOD yes
+    
 Output is stored in directory `ms02g_extended\`.
 
 
-**Test case 02 (multiple cases)-** 
+**Test case 02 (multiple cases) -**\
 Use data from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
 
     # use 2 processes, 25 Het sites for transition matrix
@@ -129,22 +135,24 @@ Use data from [example 02](https://github.com/everestial/phase-Extender/tree/mas
     python3 phase_extender_v1-final.py --nt 1 --input haplotype_file_test02.txt --SOI ms02g --numHets 25 --culLH maxPd --hapStats yes --refHap refPanel_lyrata_test02.txt --bed bed_boundries.bed
 
 
-
     
     
-**Additional input files **
+## Input files
 
-***haplotype reference panel:*** If your goal is to use reference haplotype panel, we suggest providing the haplotype reference panel with same data structure as input haplotype file.
+***haplotype file (required):*** Input haplotype file. Should contain `PG` and `PI` values for each sample.\
+To convert the haplotype reference panel (from VCF to proper text format) use **Step 01 (a)**
 
-To convert the haplotype reference panel (from VCF to proper text format) use above command: ** complete ?? **
-
-    vcf_to_table-v2.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt  
+***haplotype reference panel (optional):*** We can also provide reference haplotype panel in appropriate format. We suggest providing the haplotype reference panel with same data structure as input haplotype file. \
+To convert the haplotype reference panel (from VCF to proper text format) use **Step 01 (b)**
   
-***bed file:*** If you goal is to limit phase extension to certain genomic regions (for eg. gene, exon or QTL boundries), we suggest that you provide appropriate bed file. Remember, **phase-Extender** is exclusively limited to bed regions.   
+***bed file (optional):*** If you goal is to limit phase extension to certain genomic regions (for eg. gene, exon or QTL boundries), we suggest that you provide appropriate bed file. Remember, **phase-Extender** is exclusively limited to bed regions.
+
+    contig    start    end   # this header is not included though   
 
 To convert the GTF,GFF to bed file for appropriate GTF,GFF feature use:  ** complete ??
 
     python3 gffToBed.py  --input myGTF.gtf  --output myBed.bed
+    
     
 # Arguments
 ## Required
