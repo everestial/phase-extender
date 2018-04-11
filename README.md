@@ -7,6 +7,10 @@ Developed by [Bishwa K. Giri](mailto:kirannbishwa01@gmail.com) in the [Remington
 # Citation
 Giri, B. K., Remington D. L. Haplotype phase extension and preparation of diploid genome using phase-Extender. biorxiv (2018) [not uploaded yet].
 
+# AUTHOR/SUPPORT
+Bishwa K. Giri (bkgiri@uncg.edu; kirannbishwa01@gmail.com) \
+https://groups.google.com/d/forum/phase-extender
+
 
 # Intro to ReadBackPhasing
 **Check these links for details on readbackphasing**
