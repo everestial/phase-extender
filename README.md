@@ -84,19 +84,21 @@ For the **mcve** regarding the algorithm see this issue on **stackoverflow** htt
 ## Usage
 Requires a VCF file or a haplotype file as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
 
-## Step 01: ** to complete ??
+## Step 01:
 Prepare required files.
 
 * **A) Convert VCF to haplotype file:**
 
       python3 vcf_to_table-v3.py --mode VcfToHap --PI PI --PG PG --vcf RBphased_file.vcf --out haploype_file.txt
       
- **`**Note: If RBphase information is represented by other FORMAT fields "PI" and "PG" can be replaced accordingly. 
-  `--unphased yes` can be added to `vcf_to_table-v3.py` to include the unphased genotypes. This parameter will not affect the phase extension, and is only included to keep the whole data intact.`**
+  **`**Note:
+  - If RBphase information is represented by other FORMAT fields "PI" and "PG" can be replaced accordingly.
+  - `"--unphased yes"` can be added to `"vcf_to_table-v3.py"` to include the unphased genotypes. This parameter will not affect the phase extension, and is only included to keep the whole data intact.`
+  - run command `python3 vcf_to_table-v3.py --help` for more details on VCF to table conversion. **
         
 * **B) Convert haplotype reference panel (VCF) to haplotype file:**
   
-      python3 vcf_to_table-v3.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt
+      python3 vcf_to_table-v3.py --mode RefPanelToHap --PI CHROM --PG GT --vcf RefPanel.vcf --out RefPanel_haploype.txt
     
 
 ## Step 02:
