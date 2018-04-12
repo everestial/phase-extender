@@ -89,7 +89,7 @@ Prepare required files.
 
 * **A) Convert VCF to haplotype file:**
 
-    python3 vcf_to_table-v3.py --mode VcfToHap --PI PI --PG PG --vcf RBphased_file.vcf --out haploype_file.txt
+    `python3 vcf_to_table-v3.py --mode VcfToHap --PI PI --PG PG --vcf RBphased_file.vcf --out haploype_file.txt`
         
 * **B) Convert haplotype reference panel (VCF) to haplotype file:**
   
