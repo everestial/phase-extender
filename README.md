@@ -89,13 +89,14 @@ Prepare required files.
 
 * **A) Convert VCF to haplotype file:**
 
-    `python3 vcf_to_table-v3.py --mode VcfToHap --PI PI --PG PG --vcf RBphased_file.vcf --out haploype_file.txt`
+      python3 vcf_to_table-v3.py --mode VcfToHap --PI PI --PG PG --vcf RBphased_file.vcf --out haploype_file.txt
+      
+ **`**Note: If RBphase information is represented by other FORMAT fields "PI" and "PG" can be replaced accordingly. 
+  `--unphased yes` can be added to `vcf_to_table-v3.py` to include the unphased genotypes. This parameter will not affect the phase extension, and is only included to keep the whole data intact.`**
         
 * **B) Convert haplotype reference panel (VCF) to haplotype file:**
   
-    python3 vcf_to_table-v3.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt
-    
-`--unphased yes` can be added to `vcf_to_table-v3.py` to include the unphased genotypes. This parameter will not affect the phase extension, and is only included to keep the whole data intact.
+      python3 vcf_to_table-v3.py --mode RefPanelToHap --PI CHROM --PG GT --vcf a_refPanel_vcf_file.vcf --out a_refPanel_haploype_file.txt
     
 
 ## Step 02:
