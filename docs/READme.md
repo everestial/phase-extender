@@ -1,6 +1,7 @@
 This tutorial provides hands on for preparing required `input files` and running `phase-Extender`. **phase-Extender** is run with three different example sets and test files for the runs are provided in the appropriate links.
 
-### Step 01: Prepare `input files`.
+## Part-A: Run phase extender.
+### Step 01: Prepare input files.
 
   **A) Convert VCF to haplotype file:**
 ```
@@ -36,8 +37,9 @@ python3 phase_extender_v1-final.py --input input_haplotype_file.txt --SOI ms02g 
   
 # to write the computed LOD between two blocks to the output file
 python3 phase_extender_v1-final.py --input input_haplotype_file.txt --SOI ms02g --writeLOD yes
+
+#Output is stored in directory `ms02g_extended\`
 ```
-Output is stored in directory `ms02g_extended\`.
 
 
   - **Example test case 02 (multiple cases) -**\
@@ -72,19 +74,19 @@ python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g
 ```
     
     
-**Example test case 03 (using large dataset) -**\
-The data is ReadBackPhased haplotype (chr2 and chr3) from several samples of *A. lyrata* (Mayodan, Spiterstulen and F1 hybrids) used in my study. [Click here for the dataset.](https://www.dropbox.com/home/public_shared/phase-Extender_example03) Input file is "inputHaplotype_chr2n3.txt"
+  - **Example test case 03 (using large dataset) -**\
+The data is ReadBackPhased haplotype (chr2 and chr3) from several samples of *A. lyrata* (Mayodan, Spiterstulen and F1 hybrids) used in my study. [Click here for the dataset](https://www.dropbox.com/home/public_shared/phase-Extender_example03) 
+    - input file is "**inputHaplotype_chr2n3.txt**".
+    - output are in directory "**ms02g_chr2n3_output**" 
 ```
 python3 phase_extender_v1-final.py --nt 2 --input haplotype_file_RBphased_chr2n3.Vars.txt --SOI ms02g --output ms02g_chr2n3_output --numHets 25 --culLH 'maxPd' --hapStats yes --lods 10 --writeLOD yes --addMissingSites yes
-    
-Output in the directory named "ms02g_chr2n3_output"  
 ```
 <br>
 <br>
 
-## Interpreting phase-Extender's output 
+## Part-B: Interpreting phase-Extender's output 
 
-**1. Interpreting phase extension (from output of test case 01) -**
+**1. Interpreting phase extension between blocks (from output of test case 01) -**
 
 Phase state of sample `ms02g` in input file:
 ```
@@ -99,9 +101,8 @@ ms02g_PI    ms02g_PG_al
 4     T|A
 ```
 <br>
-<br>
-Extended phase state of sample `ms02g` (with computed LOD) in output file:
 
+Extended phase state of sample `ms02g` (with computed LOD) in output file:
 ```
 contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al	log2odds
 2	15881764	.	.	6	C|T	.
@@ -115,7 +116,7 @@ contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al	log2odds
 
 ```
 <br>
-<br>
+
 **What does this tell us?**
   - Our cutoff threshold was `10` and the computed lods between the two blocks is `-73.3033`.
   - Since, the **|computed lods|** > **lods threshold** phase-Extender proceeds with phase extension between blocks with PI (6 and 4).
@@ -124,10 +125,9 @@ contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al	log2odds
   
 <br>
 <br>
-<br>
+
 **2. Interpreting histogram plots (from output of test case 03) -**\
 So, when phase-Extender runs it will join two consecutive haplotype and will increase the size of the haplotype by number of variants within each haplotype, and also by length of the haplotype. Inversly, the total number of haplotype will decrease. This change can be compared by observing changes in the shape of the histogram (size by number of the haplotype) before vs. after phase extension.
-
 
 **Histogram of the haplotype size distribution before phase extension (contig 2 & 3)**
 ![beforephaseextension!](https://github.com/everestial/phase-Extender/blob/master/example03/hap_size_byVar_ms02g_initial.png)
@@ -138,8 +138,9 @@ So, when phase-Extender runs it will join two consecutive haplotype and will inc
 **Histogram of the haplotype size distribution after phase extension (contig 2 & 3)**
 ![afterphaseextension!](https://github.com/everestial/phase-Extender/blob/master/example03/hap_size_byVar_ms02g_final.png)
 
- 
-    
+<br>
+<br>
+
 # Recursive application of haplotype phase extension  
   - ***phase-Extender maynot be able to prepare a full length phased haplotype in one run.*** This is not the limitation but rather a intended feature in this tool. The reason is to provide flexibility and allow the user to control phase extension. A controllable haplotype extension is largely required for phase extension in emerging research model owing to smaller genotype samples, absence of reference panel and higher heterozygosity in the genome.\
   - The main idea is to first run **phase-Extender** with higher `log2Odds cut off` for several samples. Then merge the output of each sample to run another round of **phase extension** with concessive (lower) `log2Odds cut off`. When applied recursively we reduce the number of haplotypes and increase the length of haplotypes in each run.
