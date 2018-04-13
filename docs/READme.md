@@ -1,37 +1,37 @@
 This tutorial provides hands on for preparing required `input files` and running `phase-Extender`. **phase-Extender** is run with three different example sets and test files for the runs are provided in the appropriate links.
-<br>
-<br>
-### Step 01: Prepare `input files`. 
+
+### Step 01: Prepare `input files`.
 
   **A) Convert VCF to haplotype file:**
-```Python
+```
 python3 vcf_to_table-v3.py --mode VcfToHap --PI PI --PG PG --vcf RBphased_file.vcf --out haploype_file.txt
 ```
       
-  **Note:
+  **Note:**
   - If RBphase information is represented by FORMAT fields other than "PI" and "PG", then it can be replaced accordingly.
   - `"--unphased yes"` can be added to `"vcf_to_table-v3.py"` to include the unphased genotypes. This parameter will not affect the phase extension, and is only included to keep the whole data intact.
   - run command `python3 vcf_to_table-v3.py --help` for more details on VCF and haplotype reference panel to table conversion.
   
 <br>
-  **B) Convert haplotype reference panel (VCF) to haplotype file:**
-```Python
+
+  **B) Convert haplotype reference panel (VCF) to haplotype file:**  
+```
 python3 vcf_to_table-v3.py --mode RefPanelToHap --PI CHROM --PG GT --vcf RefPanel.vcf --out RefPanel_haploype.txt
 ```
-<br>
+
 <br>
 
 ### Step 02: Run phase-Extender.
 Parameters that are not called are set at default value.
 
-**Call for help -**
-```Python
+  - **Call for help -**
+```
 python3 phase_extender_v1-final.py --help
 ```    
     
-**Example test case 01 (with minimal parameters) -**\
+  - **Example test case 01 (with minimal parameters) -**\
 Use data from [example 01](https://github.com/everestial/phase-Extender/tree/master/example01)
-```Python
+```
 python3 phase_extender_v1-final.py --input input_haplotype_file.txt --SOI ms02g --lods 10
   
 # to write the computed LOD between two blocks to the output file
@@ -40,9 +40,9 @@ python3 phase_extender_v1-final.py --input input_haplotype_file.txt --SOI ms02g 
 Output is stored in directory `ms02g_extended\`.
 
 
-**Example test case 02 (multiple cases) -**\
+  - **Example test case 02 (multiple cases) -**\
 Use data from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
-```Python
+```
 # use 2 processes
 # use 25 heterozygote SNPs (from each block) for ...
   # ... preparing transition matrix between two consecutive blocks
@@ -73,17 +73,15 @@ python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g
     
     
 **Example test case 03 (using large dataset) -**\
-The data is ReadBackPhased haplotype (chr2 and chr3) from several samples of *A. lyrata* (Mayodan, Spiterstulen and F1 hybrids) used in my study. [Click here for the dataset.](https://www.dropbox.com/home/public_shared/phase-Extender_example03)
-
-input file is [inputHaplotype_chr2n3.txt](https://www.dropbox.com/s/4467t7o88keubnp/inputHaplotype_chr2n3.txt?dl=0)
-```Python
+The data is ReadBackPhased haplotype (chr2 and chr3) from several samples of *A. lyrata* (Mayodan, Spiterstulen and F1 hybrids) used in my study. [Click here for the dataset.](https://www.dropbox.com/home/public_shared/phase-Extender_example03) Input file is "inputHaplotype_chr2n3.txt"
+```
 python3 phase_extender_v1-final.py --nt 2 --input haplotype_file_RBphased_chr2n3.Vars.txt --SOI ms02g --output ms02g_chr2n3_output --numHets 25 --culLH 'maxPd' --hapStats yes --lods 10 --writeLOD yes --addMissingSites yes
     
 Output in the directory named "ms02g_chr2n3_output"  
 ```
 <br>
 <br>
-<br>
+
 ## Interpreting phase-Extender's output 
 
 **1. Interpreting phase extension (from output of test case 01) -**
@@ -103,6 +101,7 @@ ms02g_PI    ms02g_PG_al
 <br>
 <br>
 Extended phase state of sample `ms02g` (with computed LOD) in output file:
+
 ```
 contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al	log2odds
 2	15881764	.	.	6	C|T	.
