@@ -5,10 +5,11 @@ decimal
 functools
 itertools
 io
+matplotlib
 multiprocessing
 numpy
+os
 pandas
 resource
+shutil
 time
-io
-matplotlib
