@@ -77,27 +77,26 @@ For the **mcve** regarding the algorithm see this issue on **stackoverflow** htt
 ## Usage
 Requires a readbackphased `haplotype file` as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
 
-Check this [tutorial](https://everestial.github.io/phase-Extender/) for preparation of haplotype file and know-how about running `phase-Extender`.
+Check this detailed [step by step tutorial](https://everestial.github.io/phase-Extender/) for preparation of `input files` and know-how about running `phase-Extender`.
     
     
-## Input files
+## Data Requirements
 
 ***haplotype file (required):*** Input haplotype file. Should contain `PI` and `PG_al` values for each sample.\
-To convert the vcf file to haplotype file (from VCF to proper text format) use **Step 01 (a)**. \
+To convert the vcf file to haplotype file (from VCF to proper text format) use **Step 01 (a)** in the tutorial. \
 The sample name should not contain "`_`" character.
 
-***haplotype reference panel (optional):*** We can also provide reference haplotype panel in appropriate format. We suggest providing the haplotype reference panel with same data structure as input haplotype file. \
-To convert the haplotype reference panel (from VCF to proper text format) use **Step 01 (b)**
+***haplotype reference panel (optional):*** Haplotype reference panel as text file (should have same data structure as input haplotype file). \
+To convert the haplotype reference panel (from VCF to proper text format) use **Step 01 (b)** in the tutorial.
   
 ***bed file (optional):*** If you goal is to limit phase extension to certain genomic regions (for eg. gene, exon or QTL boundries), we suggest that you provide appropriate bed file. **phase-Extender** is exclusively limited to internal boundries of bed regions.
 
     # structure of the bed file
-    contig    start    end   # this header is not included though   
+    contig    start    end       # this header is not included    
     2         1258     199897
     2         397765   412569
 
     #To convert the GTF,GFF to bed file use:
-
     python3 gffToBed.py  --input myGTF.gtf  --output myBed.bed
     
     
@@ -121,12 +120,12 @@ To convert the haplotype reference panel (from VCF to proper text format) use **
 * **--writeLOD** _(no)_ - writes the calculate LODs between two consecutive haplotype blocks when processing phase extension to the output file. **Options:** 'yes', 'no'. **`**Note: the 'lods-score' are printed regardless if the "
 "consecutive blocks are joined or not.**
 * **--hapStats** _(no)_ - Prepare descriptive statistics, and histogram of the haplotype size distribution of the input haplotype file vs. extended haplotype for the sample of interest. **Options:** 'yes', 'no'
-* **--onlyPhasedSites** _(yes)_ - include the non-phased genotype data from input haplotype file to the output file. **Option:** 'yes', 'no'.
+* **--addMissingSites** _(no)_ - include the non-phased and missing genotype data from input haplotype file to the final phase extended output file. **Option:** 'yes', 'no'.
 
 
 # Output Files
 
-## initial_haplotype_*SOI*.txt and extended_haplotype_*SOI*.txt
+## initial_haplotype_*SOI*.txt & extended_haplotype_*SOI*.txt
 
 Contains all RBphased haplotype data for the sample of interest before and after phase extension.
 
@@ -138,8 +137,12 @@ Contains all RBphased haplotype data for the sample of interest before and after
 * 6 - **SOI_PG_al** - Phased GT (genotype) alleles at the genomic position that belong to unique `PI` indexes.
 * 7 - **log2Odds** (only in **extended_haplotype_SOI.txt**) - log2Odds computed between the former and later block.
 
+## extended_haplotype_"SOI_"allsites.txt
 
-## initial_haplotype_stats_*SOI*.txt and final_haplotype_stats_*SOI*.txt
+This file contains ReadBackPhased haplotype after phase extension concated with the missing data. This file contain equal number of row as input haplotype file and data only for sample of interest. 
+
+
+## initial_haplotype_stats_*SOI*.txt & final_haplotype_stats_*SOI*.txt
 **Note:** - The `SOI_PI`, and it's associated statistics are in order.
 
 Descriptive haplotype statistics of the input haplotype file for the sample of interest.
@@ -154,24 +157,22 @@ Descriptive haplotype statistics of the input haplotype file for the sample of i
 
 ## missingdata_*SOI*.txt
 
-Contains data from the sites that have unphased GT (genotype) for the sample of interest in the input haplotype file. **Note:** This data is merged with `extended_haplotype_SOI.txt` if `--onlyPhasedSites` is set to "no".
+Contains data from the sites that have unphased or missing GT (genotype) for the sample of interest in the input haplotype file. **Note:** This data is merged with `extended_haplotype_SOI.txt` if `--addMissingSites` is set to "yes".
 
 # Plots
-**Note:** - These plots are based on the descriptive statistics generated for haplotypes before and after phase extension. It is also possible to take these statistics and make custom plots in **R** or using other methods.
+**Note:** - These plots are based on the descriptive statistics generated for haplotypes before and after phase extension. It is possible to take these statistics (initial_haplotype_stats_*SOI*.txt & final_haplotype_stats_*SOI*.txt) and make custom plots in **R** or by using other methods.
 
-## total_haps_*SOI*_initial.png  and total_haps_*SOI*_final.png
+## total_haps_"SOI_"initial.png  & total_haps_"SOI_"final.png
 Number of haplotypes for given contig before and after phase extension. 
 
-## total_vars_*SOI*_initial.png  and total_vars_*SOI*_final.png
+## total_vars_"SOI_"initial.png  & total_vars_"SOI_"final.png
 Number of variants for given contig before and after phase extension. 
 
-## hap_size_byVar_*SOI*_initial.png and hap_size_byVar_*SOI*_final.png
-Histogram of the distribution of the haplotypes by number of variants in each haplotypes in given contig before and after phase extension. 
+## hap_size_byVar_"SOI_"initial.png & hap_size_byVar_"SOI_"final.png
+Histogram of the distribution of the haplotype size (by number of variants in the haplotype) in given contig before and after phase extension. 
 
-
-**phase-Extender** is designed to create long range haplotyes (and possible GW haplotype) using haplotype file created from multisample VCF. Owing to it's RBphased method which contains information from multiple SNP position, it can solve proper haplotype state even with small number of samples which is important in emerging research models. phase-Extender also provides the benefit of allowing the user to control haplotype extension by allowing fexible values in parameters `snpTh`, `minHets`, `log2Odds cut off`, `useSample`, `bed`. This way a user provide a more flexible means of controlling the phase extension. 
- 
-
+## hap_size_byGenomicRange_"SOI_"initial.png & hap_size_byGenomicRange_"SOI_"final.png
+Histogram of the distribution of the haplotype size (by genomic range of the haplotype) in given contig before and after phase extension.
 
 
 # Some Q/A on phase-extender - to complete ??? : 
@@ -192,6 +193,11 @@ Histogram of the distribution of the haplotypes by number of variants in each ha
     it takes the information from several haplotype blocks from other samples that are not broken at that
     point. So, we can solve haplotype configuration for SOI (sample of interest) pretty much easily. ***Also, with paired-end 
     read size getting increased in Illumina sequence data we can have more reliable full gene-level haplotypes for SOI.***
+    
+    
+    **phase-Extender** is designed to create long range haplotyes (and possible GW haplotype) using haplotype file created from multisample VCF. Owing to it's RBphased method which contains information from multiple SNP position, it can solve proper haplotype state even with small number of samples which is important in emerging research models. phase-Extender also provides the benefit of allowing the user to control haplotype extension by allowing fexible values in parameters `snpTh`, `minHets`, `log2Odds cut off`, `useSample`, `bed`. This way a user provide a more flexible means of controlling the phase extension. 
+    
+    
     
    **4) Does phase-extender phase InDels ?**
     Yes, but it is conditional. The InDels should already be phased to a reliable haplotype block. That way when the haplotype is
@@ -268,21 +274,13 @@ Histogram of the distribution of the haplotypes by number of variants in each ha
    Should I prepare my haplotype block file onlyusing phaser?
    
    
-   
-   
-## Note:
-- Basically this tool takes the paritally phased haplotypes
-    - segregates them to maternal vs. paternal population haplotypes (using markov model)
-    - stitches the haplotypes to create a genome wide haplotype
-    
-This program is exclusively designed to phase haplotypes in F1 hybrid for now and should work equally with data generated from genome reseq, RNAseq, WES or RAD given the individual is a hybrid derived from divergent strains and/or populations, but may be used to equally extended to phase F2 hybrids (work on progress).
 
 
-# Future updates
-## Phase SNPs 
-## Imputation
-## Trio based phasing
-## higher order markov chain capabilities
-## multiprocessing within chromosome
+# Expected capabilities in the future (coming soon)
+## Phase SNPs that are not assigned to ReadBackPhased blocks
+## Genotype imputation
+## Trio based phasing, Family based phasing
+## Higher order markov chain capabilities
+## Multiprocessing within chromosome
 
 
