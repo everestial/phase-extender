@@ -46,20 +46,13 @@ ReadBackphasing is slowly emerging as a replacement (or new method??) for prepar
    - are aimed at preparing long range haplotype but not necessarily genome wide. 
    - prepare the RBPhased haplotype blocks based on multiple input "BAM" and "VCF" files for a single sample and/or trios. The increase in the size of phased haplotype blocks only depends upon multiple BAM files, or multiple sets of longer reads from the same individual.
 
-For specimen that don't have multiple genomic and rnaseq sources, reference haplotype panel the existing RBphase method is only able to yield short range haplotypes. Even with multiple bam inputs these tools are still not aimed at preparing the haplotype genome wide, but rather are limited at preparing long streches of haplotype for certain part of a genome. Additionally, these RBphase tools do not have method to solve phase state between two adjacent haplotype blocks that are not spanned by sequence reads (in a sample) i.e there is not method incorporated to transfer readbackphased haplotype data information across population of samples. 
+For specimen that don't have multiple genomic and rnaseq sources, reference haplotype panel the existing RBphase method is only able to yield short range haplotypes. Even with multiple bam inputs these tools are still not aimed at preparing the haplotype genome wide, but rather are limited at preparing long streches of haplotype for certain part of a genome. Additionally, these RBphase tools do not have method to solve phase state between two adjacent haplotype blocks that are not spanned by sequence reads (in a sample) i.e there is not method incorporated to transfer readbackphased haplotype data information across population of samples. Another issue with haplotype phasing is switch errors and can be quite costly when phase state are wrongly assigned. RBphasing method is able to yeild higher variants per haplotype block thus making phase-Extender a better method and tool when working with genotype with higher heterozygosity (out crossing population and hybrids).
 
 With increase in the size of PE (paired end) reads from illumina and availability of longer sequences from PacBio, it is possible to prepare short range haplotypes that span more than 2 heterozygous site in the genome. Thus, the issue with "2^n" problem can be overcome by first preparing RBphased haplotype blocks along the genome, and next by joining the two consecutive blocks in a sample one at a time. The size of RBphased blocks also increases with increase in heterozygosity in the genome thereby making this method more suitable for highly heterozygous populations. And, there is always more information in RBphased haplotype compared with a single SNP or InDel thereby overcoming the issues with switcherrors when preparing the long range haplotype in heterozygous population. 
 
 Existing haplotype phasing tools (that use RBphase and non-RBphase method) are oriented towards organism that have large genotype data and several haplotype reference panels available. For non-model organism these methods are therefore sub-optimal. RBphasing provides some phasing benefits because the phase state along short blocks can be readily extracted. However, converting the short haplotype fragments to longer haplotype strings can be challenging due to small sample size, low coverage within each sample, lack of enough genotype data, absence of reference panels in emerging research models. **phASE-Extender** overcomes these limitations by using the short range RBphased haplotype blocks from several samples that have several haplotype break points. **phase-Extender** is aimed at filling this technical gap by using the short fragments haplotypes among several samples, where the breakpoint of one sample is bridged by several other samples. 
 
 **phASE-Extender** starts with already prepared RBphased haplotype blocks of several individuals at once and joins the two RBphased blocks for a single sample at once using overlapping phase states in other samples of the pool. Thus it is possible to solve the haplotype breakpoints by transfering the phase information between samples that belong to same family, populaton or species. *So, if we have a pool of several samples that have RBphased haplotypes, each sample will have several non-overlapping breakpoints among the samples. We can solve the phase state between two consecutive blocks (of one sample at a time) by computing the likelyhood of the phase states (parallel vs. alternate configuration). Likelihood of each configuration is computed by using the observed phase state in other samples that bridge that breakpoint position.* In **phASE-Extender** we use first order markov chain to compute the relationship between two consecutive haplotype blocks by preparing first order transition matrix from all the nucleotides of former haplotype block to all the nucelotides in the later haplotype block. We then compute cumulative likelyhood estimates of haplotype states for both the possible configuration. The phase state of two consecutive haplotype blocks is then extended if the `computed log2 (likelihood)` of either configuration is above the `threshold log2(likelihood) cutoff`. Using RBphase method we can therefore use small sample size to accurately predict the proper haplotype state. 
-
-
-**
-Another problem with emerging models is - switch errors and for the specimen with  higher heterozygosity (out crossing population and hybrids) switch errors can lead to further complicative problem with genomic analyses.
-
-So, **phase-Extender** can be used with any RBphased input haplotype file given it meets the appropriate data structure. 
-**
 
 
 ## Input data
@@ -84,74 +77,7 @@ For the **mcve** regarding the algorithm see this issue on **stackoverflow** htt
 ## Usage
 Requires a VCF file or a haplotype file as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
 
-## Step 01:
-Prepare required files.
 
-  **A) Convert VCF to haplotype file:**
-
-      python3 vcf_to_table-v3.py --mode VcfToHap --PI PI --PG PG --vcf RBphased_file.vcf --out haploype_file.txt
-      
-  **Note:
-  - If RBphase information is represented by FORMAT fields other than "PI" and "PG", then it can be replaced accordingly.
-  - `"--unphased yes"` can be added to `"vcf_to_table-v3.py"` to include the unphased genotypes. This parameter will not affect the phase extension, and is only included to keep the whole data intact.`
-  - run command `python3 vcf_to_table-v3.py --help` for more details on VCF and haplotype reference panel to table conversion.
-        
-
-  **B) Convert haplotype reference panel (VCF) to haplotype file:**
-  
-      python3 vcf_to_table-v3.py --mode RefPanelToHap --PI CHROM --PG GT --vcf RefPanel.vcf --out RefPanel_haploype.txt
-    
-
-## Step 02:
-Run phase-Extender.\
-Parameters that are not called are set at default value.
-
-**Call for help -**
-
-    python3 phase_extender_v1-final.py --help
-    
-**Example test case 01 (with minimal parameters) -**\
-Use data from [example 01](https://github.com/everestial/phase-Extender/tree/master/example01)
-
-    python3 phase_extender_v1-final.py --input haplotype_file_test01.txt --SOI ms02g
-    
-    # write computed LOD between two blocks to the output file
-    python3 phase_extender_v1-final.py --input haplotype_file_test01.txt --SOI ms02g --writeLOD yes
-    
-Output is stored in directory `ms02g_extended\`.
-
-
-**Example test case 02 (multiple cases) -**\
-Use data from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
-
-    # use 2 processes, 25 Het sites for transition matrix
-    # lods cutoff 10 and output descriptive statistics of the haplotype    
-    python3 phase_extender_v1-final.py --nt 2 --input haplotype_file_test02.txt --SOI ms02g --numHets 25 --culLH maxPd --hapStats yes --lods 10
-    
-    # Output is stored in directory `ms02g_extended\`.
-    
-    # assign output to different directory
-    python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g --output my_test
-    # Output is stored in directory `my_test\`.
-    
-    # add "Reference Haplotype Panel" to the run
-    python3 phase_extender_v1-final.py --nt 2 --input haplotype_file_test02.txt --SOI ms02g --numHets 25 --culLH maxPd --hapStats yes --refHap refPanel_lyrata_test02.txt
-    
-    # add "bed file" to the run
-    python3 phase_extender_v1-final.py --nt 1 --input haplotype_file_test02.txt --SOI ms02g --numHets 25 --culLH maxPd --hapStats yes --refHap refPanel_lyrata_test02.txt --bed bed_boundries.bed
-    
-    # only use samples from "reference panel" to run phase extension
-    python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g --useSample refHap
-        
-    # only use select sample from to run phase extension
-    # ** it is possible to mix sample names between reference panel and input haplotype file
-    python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g --useSample ms01e,ms02g,MA605,Sp76
-    
-**Example test case 03 (using large data) -**\
-Use the file in this dropbox link
-The data are from chr2 and chr3 for A lyrata. 
-
-    # some command
     
     
     
