@@ -28,7 +28,8 @@ Parameters that are not called are set at default value.
   - **Call for help -**
 ```
 python3 phase_extender_v1-final.py --help
-```    
+```
+<br>
     
   - **Example test case 01 (with minimal parameters) -**\
 Use data from [example 01](https://github.com/everestial/phase-Extender/tree/master/example01)
@@ -40,7 +41,7 @@ python3 phase_extender_v1-final.py --input input_haplotype_file.txt --SOI ms02g 
 
 #Output is stored in directory `ms02g_extended\`
 ```
-
+<br>
 
   - **Example test case 02 (multiple cases) -**\
 Use data from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
@@ -72,8 +73,8 @@ python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g
 # ** it is possible to mix sample names between reference panel and input haplotype file
 python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g --useSample ms01e,ms02g,MA605,Sp76
 ```
-    
-    
+<br>
+
   - **Example test case 03 (using large dataset) -**\
 The data is ReadBackPhased haplotype (chr2 and chr3) from several samples of *A. lyrata* (Mayodan, Spiterstulen and F1 hybrids) used in my study. [Click here for the dataset](https://www.dropbox.com/home/public_shared/phase-Extender_example03) 
     - input file is "**inputHaplotype_chr2n3.txt**".
@@ -86,9 +87,9 @@ python3 phase_extender_v1-final.py --nt 2 --input haplotype_file_RBphased_chr2n3
 
 ## Part-B: Interpreting phase-Extender's output 
 
-**1. Interpreting phase extension between blocks (from output of test case 01) -**
+### **1. Interpreting phase extension between blocks (from output of test case 01) -**
 
-Phase state of sample `ms02g` in input file:
+**Initial phase state of sample `ms02g` in input file:**
 ```
 ms02g_PI    ms02g_PG_al
 6     C|T
@@ -102,7 +103,7 @@ ms02g_PI    ms02g_PG_al
 ```
 <br>
 
-Extended phase state of sample `ms02g` (with computed LOD) in output file:
+**Extended phase state of sample `ms02g` (with computed LOD) in output file:**
 ```
 contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al	log2odds
 2	15881764	.	.	6	C|T	.
@@ -126,7 +127,7 @@ contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al	log2odds
 <br>
 <br>
 
-**2. Interpreting histogram plots (from output of test case 03) -**\
+### **2. Interpreting histogram plots (from output of test case 03) -**\
 So, when phase-Extender runs it will join two consecutive haplotype and will increase the size of the haplotype by number of variants within each haplotype, and also by length of the haplotype. Inversly, the total number of haplotype will decrease. This change can be compared by observing changes in the shape of the histogram (size by number of the haplotype) before vs. after phase extension.
 
 **Histogram of the haplotype size distribution before phase extension (contig 2 & 3)**
