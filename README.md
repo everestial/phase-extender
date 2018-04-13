@@ -75,10 +75,9 @@ For the **mcve** regarding the algorithm see this issue on **stackoverflow** htt
 **phase-Extender** is written in python3 interpreter. So, it can be directly run using the **".py"** file, given all the required modules (dependencies) are installed.
 
 ## Usage
-Requires a VCF file or a haplotype file as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
+Requires a readbackphased `haplotype file` as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
 
-
-    
+Check this [tutorial](https://everestial.github.io/phase-Extender/) for preparation of haplotype file and know-how about running `phase-Extender`.
     
     
 ## Input files
@@ -171,13 +170,7 @@ Histogram of the distribution of the haplotypes by number of variants in each ha
 
 
 **phase-Extender** is designed to create long range haplotyes (and possible GW haplotype) using haplotype file created from multisample VCF. Owing to it's RBphased method which contains information from multiple SNP position, it can solve proper haplotype state even with small number of samples which is important in emerging research models. phase-Extender also provides the benefit of allowing the user to control haplotype extension by allowing fexible values in parameters `snpTh`, `minHets`, `log2Odds cut off`, `useSample`, `bed`. This way a user provide a more flexible means of controlling the phase extension. 
-
-# Recursive application of haplotype phase extension  
-  ***phase-Extender maynot be able to prepare a full length phased haplotype in one run.*** This is not the limitation but rather a intended feature in this tool. The reason is to provide flexibility and allow the user to control phase extension. A controllable haplotype extension is largely required method for phase extension in emerging research model owing to resource scarcity. The main idea is to first run **phase-Extender** with higher `log2Odds cut off` for several samples. Then merge the output of each sample to run another round of **phase extension** with concessive (lower) `log2Odds cut off`. So, when applied recursively we reduced the number of haplotypes and increase the length of haplotypes in each chromosome.
-  
-  So, controllable haplotype extension is a novel feature intended in **phase-Extender**. A full length recursive phase extension is illustrated in this link [phase Extender on recursive mode](some website??) using the bash script.
-  
-  
+ 
 
 
 
