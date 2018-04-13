@@ -1,7 +1,9 @@
 
 
+Below is a brief tutorial on `preparing required files` and running `phase-Extender`.
+
 ## Step 01:
-Prepare required files.
+Prepare required files. 
 
   **A) Convert VCF to haplotype file:**
 
@@ -64,7 +66,22 @@ Use data from [example 02](https://github.com/everestial/phase-Extender/tree/mas
     python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g --useSample ms01e,ms02g,MA605,Sp76
     
 **Example test case 03 (using large data) -**\
-Use the file in this dropbox link
-The data are from chr2 and chr3 for A lyrata. 
+I am running the dataThe data are from chr2 and chr3 for A lyrata. 
 
     # some command
+    
+    
+    
+ # put some plots here ??
+ 
+ 
+    
+    
+# Recursive application of haplotype phase extension  
+  ***phase-Extender maynot be able to prepare a full length phased haplotype in one run.*** This is not the limitation but rather a intended feature in this tool. The reason is to provide flexibility and allow the user to control phase extension. A controllable haplotype extension is largely required method for phase extension in emerging research model owing to resource scarcity. The main idea is to first run **phase-Extender** with higher `log2Odds cut off` for several samples. Then merge the output of each sample to run another round of **phase extension** with concessive (lower) `log2Odds cut off`. So, when applied recursively we reduced the number of haplotypes and increase the length of haplotypes in each chromosome.
+  
+  So, controllable haplotype extension is a novel feature intended in **phase-Extender**. A full length recursive phase extension is illustrated in this link [phase Extender on recursive mode](some website??) using the bash script.
+  
+  
+  
+  
