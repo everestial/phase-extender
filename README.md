@@ -4,37 +4,20 @@
 
 Developed by [Bishwa K. Giri](mailto:kirannbishwa01@gmail.com) in the [Remington Lab](website?) at the University of North Carolina at Greensboro, Biology department.
 
-# Citation
+## Citation
 Giri, B. K., Remington D. L. Haplotype phase extension and preparation of diploid genome using phase-Extender. biorxiv (2018) [not uploaded yet].
 
-# AUTHOR/SUPPORT
+## AUTHOR/SUPPORT
 Bishwa K. Giri (bkgiri@uncg.edu; kirannbishwa01@gmail.com) \
-support @ https://groups.google.com/d/forum/phase-extender
+Support @ https://groups.google.com/d/forum/phase-extender
 
-
-# Intro to ReadBackPhasing
+## Intro to ReadBackPhasing
 **Check these links for details on readbackphasing**
 - https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_phasing_ReadBackedPhasing.php
 - https://github.com/secastel/phaser/tree/master/phaser
 
-
-**Runs on `Python 3.x` and has the following dependencies:**
-
-  - [pandas](http://pandas.pydata.org/)
-  - [argparse](https://docs.python.org/3/library/argparse.html)
-  - [collections](https://docs.python.org/3/library/collections.html?highlight=collections#module-collections)
-  - [csv](https://docs.python.org/3/library/csv.html?highlight=csv)
-  - [decimal](https://docs.python.org/3/library/decimal.html?highlight=decimal#module-decimal)
-  - [functools](https://docs.python.org/3/library/functools.html?highlight=functools)
-  - [itertools](https://docs.python.org/3/library/itertools.html?highlight=itertools)
-  - [io](https://docs.python.org/3/library/io.html?highlight=io#module-io)
-  - [multiprocessing](https://docs.python.org/3/library/multiprocessing.html?highlight=multiprocessing#)
-  - [numpy](http://www.numpy.org/), `http://cs231n.github.io/python-numpy-tutorial/`
-  - [resource](https://docs.python.org/3/library/resource.html?highlight=resource#module-resource)
-  - [time](https://docs.python.org/3/library/time.html?highlight=time#module-time)
-  - [matplotlib](https://matplotlib.org/2.2.2/index.html)
-
-
+<br>
+<br>
 
 # BACKGROUND
 Haplotype phasing is a second "go to" problem in bioinformatics after read alignment. The importance of haplotype phasing applies directly to the analyses of ASE (allele specific expression), preparation of extended haplotype for EHH (extended haplotype homozygosity) test, and preparation of dipolid genome which will soon be a new standard in bioinformatics in coming years, etc. The necessity for haplotype phasing (and eventually diploid genome) increases with the increase in heterozygosity in the genome, because higher hetetogeneity leads to larger alignment bias and complicates the reliability of the variants that are called using that alignment data (SAM, BAM files).
@@ -54,33 +37,64 @@ Existing haplotype phasing tools (that use RBphase and non-RBphase method) are o
 
 **phASE-Extender** starts with already prepared RBphased haplotype blocks of several individuals at once and joins the two RBphased blocks for a single sample at once using overlapping phase states in other samples of the pool. Thus it is possible to solve the haplotype breakpoints by transfering the phase information between samples that belong to same family, populaton or species. *So, if we have a pool of several samples that have RBphased haplotypes, each sample will have several non-overlapping breakpoints among the samples. We can solve the phase state between two consecutive blocks (of one sample at a time) by computing the likelyhood of the phase states (parallel vs. alternate configuration). Likelihood of each configuration is computed by using the observed phase state in other samples that bridge that breakpoint position.* In **phASE-Extender** we use first order markov chain to compute the relationship between two consecutive haplotype blocks by preparing first order transition matrix from all the nucleotides of former haplotype block to all the nucelotides in the later haplotype block. We then compute cumulative likelyhood estimates of haplotype states for both the possible configuration. The phase state of two consecutive haplotype blocks is then extended if the `computed log2 (likelihood)` of either configuration is above the `threshold log2(likelihood) cutoff`. Using RBphase method we can therefore use small sample size to accurately predict the proper haplotype state. 
 
-
-## Input data
+## Data Requirements
 
 **phASE-Extender** can be used with the multi-sample vcf files produced by GATK pipeline or other tools that generate readbackphased haplotype blocks in the output VCF. A haplotype file is created using the RBphased VCF and then piped into **phase-Extender**. See, this example for data structure of input haplotype file [sample input haplotype file01](https://github.com/everestial/phase-Extender/blob/master/example01/input_haplotype_small.txt) - a tab separated text file with `PI` and `PG_al` value for each samples.
 
 In several tutorial examples (test files below) I have used hapotype file prepared from RBphased VCF generated by `phaser` (https://github.com/secastel/phaser , https://github.com/secastel/phaser/tree/master/phaser). However, **phase-Extender** can be used with input haplotype file prepared from any RBphased VCF given it meets the appropriate data structure. Readbackphased VCF can be converted into `haplotype file` using an add-on tool `vcf_to_table-v3.py`.\
 VCF from `phaser` consists of `Phased Genotype i.e PG` and `Phase Block Index i.e PI` values in `FORMAT` field; **PI** represents the `unique haplotype block index` and **PG** represents the `phased genotypes within that PI block`.  After converting the `RBphased VCF` to `haplotype file` **phase-Extender** uses the `Phased Genotype i.e PG` and `Phase Block Index i.e PI` values in the `haplotype file` to prepare the transition matrix probabilities and proceed with phase extension.
 
-
-# Algorithm
+## Algorithm
 For the **mcve** regarding the algorithm see this issue on **stackoverflow** https://codereview.stackexchange.com/questions/186396/solve-the-phase-state-between-two-haplotype-blocks-using-markov-transition-proba . 
 **A more comprehensive and a neat diagrammatic version will be soon included in my wordpress account **
 
-
+<br>
+<br>
 
 # Tutorial
 
 ## Setup
 **phase-Extender** is written in python3 interpreter. So, it can be directly run using the **".py"** file, given all the required modules (dependencies) are installed.
 
+**Runs on `Python 3.x` and has the following dependencies:**
+
+  - [pandas](http://pandas.pydata.org/)
+  - [argparse](https://docs.python.org/3/library/argparse.html)
+  - [collections](https://docs.python.org/3/library/collections.html?highlight=collections#module-collections)
+  - [csv](https://docs.python.org/3/library/csv.html?highlight=csv)
+  - [decimal](https://docs.python.org/3/library/decimal.html?highlight=decimal#module-decimal)
+  - [functools](https://docs.python.org/3/library/functools.html?highlight=functools)
+  - [itertools](https://docs.python.org/3/library/itertools.html?highlight=itertools)
+  - [io](https://docs.python.org/3/library/io.html?highlight=io#module-io)
+  - [multiprocessing](https://docs.python.org/3/library/multiprocessing.html?highlight=multiprocessing#)
+  - [numpy](http://www.numpy.org/), `http://cs231n.github.io/python-numpy-tutorial/`
+  - [resource](https://docs.python.org/3/library/resource.html?highlight=resource#module-resource)
+  - [time](https://docs.python.org/3/library/time.html?highlight=time#module-time)
+  - [matplotlib](https://matplotlib.org/2.2.2/index.html)
+  
+<br>
+  
+## Installation
+```
+pip3 install -r requirements.txt
+
+#Or
+sudo pip3 install -r requirements.txt
+```
+
+**If there is issues with installation while using `requirements.txt` install each dependencies individually.**\
+`sudo python3 -m pip install pandas`  
+  
+<br>
+
 ## Usage
 Requires a readbackphased `haplotype file` as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
 
 Check this detailed [step by step tutorial](https://everestial.github.io/phase-Extender/) for preparation of `input files` and know-how about running `phase-Extender`.
     
-    
-## Data Requirements
+<br>
+
+## Input data
 
 ***haplotype file (required):*** Input haplotype file. Should contain `PI` and `PG_al` values for each sample.\
 To convert the vcf file to haplotype file (from VCF to proper text format) use **Step 01 (a)** in the tutorial. \
@@ -100,15 +114,15 @@ To convert the haplotype reference panel (from VCF to proper text format) use **
     python3 gffToBed.py  --input myGTF.gtf  --output myBed.bed
     
     
-# Arguments
-## Required
+## Arguments
+### Required
 * **--input** - input haplotype file. `PI` and `PG_al` should be present in header for each sample.
 * **--SOI** - sample of interest. It should refer to a single sample in the haplotype the file. The sample name should not contain "`_`" character. 
 
-## Performance Related
+### Performance Related
 * **--nt** _(1)_ - maximum number of processes to run at once. The maximum number of processes is limited to number of chromosomes (contigs) in the input haplotype file. 
 
-## Optional
+### Optional
 * **--python_string** _(python3)_ - Calls `python 3` interpreter to run the program.
 * **--output** _(SOI_extended)_ - Output directory. 
 * **--snpTh** _(3)_ - snp threshold. Minimum number of SNPs required in each consecutive haplotype block to run phase extension between two blocks.
@@ -122,13 +136,13 @@ To convert the haplotype reference panel (from VCF to proper text format) use **
 * **--hapStats** _(no)_ - Prepare descriptive statistics, and histogram of the haplotype size distribution of the input haplotype file vs. extended haplotype for the sample of interest. **Options:** 'yes', 'no'
 * **--addMissingSites** _(no)_ - include the non-phased and missing genotype data from input haplotype file to the final phase extended output file. **Option:** 'yes', 'no'.
 
+<br>
+<br>
 
-# Output Files
+## Output Files
 
-## initial_haplotype_*SOI*.txt & extended_haplotype_*SOI*.txt
-
+### initial_haplotype_*SOI*.txt & extended_haplotype_*SOI*.txt
 Contains all RBphased haplotype data for the sample of interest before and after phase extension.
-
 * 1 - **contig** - Contig name (or number).
 * 2 - **pos** - Start position of haplotype (1 based).
 * 3 - **ref** - Reference allele at that site.
@@ -137,16 +151,10 @@ Contains all RBphased haplotype data for the sample of interest before and after
 * 6 - **SOI_PG_al** - Phased GT (genotype) alleles at the genomic position that belong to unique `PI` indexes.
 * 7 - **log2Odds** (only in **extended_haplotype_SOI.txt**) - log2Odds computed between the former and later block.
 
-## extended_haplotype_"SOI_"allsites.txt
+<br>
 
-This file contains ReadBackPhased haplotype after phase extension concated with the missing data. This file contain equal number of row as input haplotype file and data only for sample of interest. 
-
-
-## initial_haplotype_stats_*SOI*.txt & final_haplotype_stats_*SOI*.txt
-**Note:** - The `SOI_PI`, and it's associated statistics are in order.
-
+### initial_haplotype_stats_*SOI*.txt & final_haplotype_stats_*SOI*.txt
 Descriptive haplotype statistics of the input haplotype file for the sample of interest.
-
 * 1 - **contig** - Contig name (or number).
 * 2 - **SOI_PI** - Comma separated list of unique `PI` index of the haplotype blocks for the sample of interest. The total number of `PI` index represents the total number of haplotype fragments that are present in the given contig in that sample.
 * 3 - **num_Vars_by_PI** - Number of variants sites within each `PI` block for the sample of interest. 
@@ -154,28 +162,39 @@ Descriptive haplotype statistics of the input haplotype file for the sample of i
 * 5 - **total_haplotypes** - Total number of haplotype (i.e `PI`) in the given coting for the sample of interest.
 * 6 - **total_Vars** - Total number of variant sites in the given contig for the sample of interest. **Note:** The sum of (num_Vars_by_PI) = total_Vars.
 
+**Note:** - The `SOI_PI`, and it's associated statistics are in order.
+<br>
 
-## missingdata_*SOI*.txt
+### missingdata_*SOI*.txt
+Contains data from the sites that have unphased or missing GT (genotype) for the sample of interest in the input haplotype file.
+**Note:** This data is merged with `extended_haplotype_SOI.txt` if `--addMissingSites` is set to "yes".
+<br>
 
-Contains data from the sites that have unphased or missing GT (genotype) for the sample of interest in the input haplotype file. **Note:** This data is merged with `extended_haplotype_SOI.txt` if `--addMissingSites` is set to "yes".
+### extended_haplotype_"SOI_"allsites.txt
+This file contains ReadBackPhased haplotype after phase extension concated with the missing data. This file contain equal number of row as input haplotype file and data only for sample of interest. 
 
-# Plots
+<br>
+<br>
+
+## Plots
 **Note:** - These plots are based on the descriptive statistics generated for haplotypes before and after phase extension. It is possible to take these statistics (initial_haplotype_stats_*SOI*.txt & final_haplotype_stats_*SOI*.txt) and make custom plots in **R** or by using other methods.
 
-## total_haps_"SOI_"initial.png  & total_haps_"SOI_"final.png
+### total_haps_"SOI_"initial.png  & total_haps_"SOI_"final.png
 Number of haplotypes for given contig before and after phase extension. 
 
-## total_vars_"SOI_"initial.png  & total_vars_"SOI_"final.png
+### total_vars_"SOI_"initial.png  & total_vars_"SOI_"final.png
 Number of variants for given contig before and after phase extension. 
 
-## hap_size_byVar_"SOI_"initial.png & hap_size_byVar_"SOI_"final.png
+### hap_size_byVar_"SOI_"initial.png & hap_size_byVar_"SOI_"final.png
 Histogram of the distribution of the haplotype size (by number of variants in the haplotype) in given contig before and after phase extension. 
 
-## hap_size_byGenomicRange_"SOI_"initial.png & hap_size_byGenomicRange_"SOI_"final.png
+### hap_size_byGenomicRange_"SOI_"initial.png & hap_size_byGenomicRange_"SOI_"final.png
 Histogram of the distribution of the haplotype size (by genomic range of the haplotype) in given contig before and after phase extension.
 
+<br>
+<br>
 
-# Some Q/A on phase-extender - to complete ??? : 
+## Some Q/A on phase-extender - to complete ??? : 
 
   **_1) What kind of algorithm does phase-extender use ?_**  
     phase-extender uses first-order-transition probabilities from each level of genotypes from former haplotype block to each level of genotypes to later haplotype block. This version (v1) uses **forward-1stOrder-markov chains** and **backward-1stOrder-markov chains** transition probabilities. Future versions will follow improvements by adding markov-chains of higher order.    
