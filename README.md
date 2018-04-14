@@ -45,8 +45,7 @@ In several tutorial examples (test files below) I have used hapotype file prepar
 VCF from `phaser` consists of `Phased Genotype i.e PG` and `Phase Block Index i.e PI` values in `FORMAT` field; **PI** represents the `unique haplotype block index` and **PG** represents the `phased genotypes within that PI block`.  After converting the `RBphased VCF` to `haplotype file` **phase-Extender** uses the `Phased Genotype i.e PG` and `Phase Block Index i.e PI` values in the `haplotype file` to prepare the transition matrix probabilities and proceed with phase extension.
 
 ## Algorithm
-For the **mcve** regarding the algorithm see this issue on **stackoverflow** https://codereview.stackexchange.com/questions/186396/solve-the-phase-state-between-two-haplotype-blocks-using-markov-transition-proba . 
-**A more comprehensive and a neat diagrammatic version will be soon included in my wordpress account **
+For the **mcve** regarding the algorithm see this issue on [**stackoverflow**](https://codereview.stackexchange.com/questions/186396/solve-the-phase-state-between-two-haplotype-blocks-using-markov-transition-proba) and/or [**my blog**](https://everestialblog.wordpress.com/2018/03/27/extension-of-the-readbackphased-haplotypes-using-phase-extender/). 
 
 <br>
 <br>
@@ -199,107 +198,72 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
   **_1) What kind of algorithm does phase-extender use ?_**  
     phase-extender uses first-order-transition probabilities from each level of genotypes from former haplotype block to each level of genotypes to later haplotype block. This version (v1) uses **forward-1stOrder-markov chains** and **backward-1stOrder-markov chains** transition probabilities. Future versions will follow improvements by adding markov-chains of higher order.    
     
-   **2) What is the advantage of using phase-extender ?**
-   
-    We generally need accurate phase state with in a gene/transcript level while doing ASE, dissecting maternal-paternal effects.  
-    Long haplotypes are mostly important while preparing diploid genome, long range haplotype for testing selective sweeps, 
-    within a QTL regions etc. 
-    For emerging organism systems where CW,GW haplotypes are more difficult to solve, it is more important to solve haplotypes 
-    within short gene regions. 
-    But, most of RBphased Haplotype rarely cover full gene regions due to coverage issues, or due to short read sequence that 
-    cannot cover whole gene, etc. In that situation, if we rather have short haplotype blocks from severals samples it can be 
-    used to solve a full gene length haplotypes for each sample (one at a time). phase-extender comes handy at this stage; that 
-    it takes the information from several haplotype blocks from other samples that are not broken at that
-    point. So, we can solve haplotype configuration for SOI (sample of interest) pretty much easily. ***Also, with paired-end 
-    read size getting increased in Illumina sequence data we can have more reliable full gene-level haplotypes for SOI.***
+   **_2) What is the advantage of using phase-extender ?_**
+     We generally need accurate phase state with in a gene/transcript level while doing ASE, dissecting maternal-paternal effects. Long haplotypes are mostly important while preparing diploid genome, testing selective sweeps within a QTL regions etc. For emerging organism systems where genotype data are sparse CW (chromosome wide), GW (genome wide) haplotypes are more difficult to solve. Also, haplotype phasing may be more complicated in out crossing individuals and hybrids due to heterogenity.\ RBphasing actually provides an advantage with heterogenous genome because frequency of RBphased blocks increases with heterogenity in the genome. These short haplotype fragments have multiple heterozygous variants on a short haplotype block. With increase in the size of `PE` (paired end) reads the size of RBphase blocks are also increasing. phase-extender comes handy at this stage; that it tries to solve phase state of two consecutive blocks from one sample at a time by using data from haplotype blocks of other samples that bridge that breakpoint. So, we can solve haplotype configuration for SOI (sample of interest) with more confidence because: 
+     - we have more variants within each blocks contributing to more information.
+     - we only need to solve two possible phase state at one time compared to 2^n haplotype when reading one SNP at a time.
+     
+     
+   **_3) Does phase-extender phase InDels ?_**
+   Yes, but it is conditional. The InDels should already be readbackphased to a reliable haplotype block. That way when the haplotype is being extended for those SNPs, InDels hitchhike with it and get extended too.
     
+   **_4) What is the minimal size of the haplotype block that is required?_** 
+   The bigger the two haplotypes are, the better is the likelyhood test of which haplotype is phased with which. By, default I have kept this number to 3 variants (SNPs exclusive) per haplotype block that needs extension.
     
-    **phase-Extender** is designed to create long range haplotyes (and possible GW haplotype) using haplotype file created from multisample VCF. Owing to it's RBphased method which contains information from multiple SNP position, it can solve proper haplotype state even with small number of samples which is important in emerging research models. phase-Extender also provides the benefit of allowing the user to control haplotype extension by allowing fexible values in parameters `snpTh`, `minHets`, `log2Odds cut off`, `useSample`, `bed`. This way a user provide a more flexible means of controlling the phase extension. 
-    
-    
-    
-   **4) Does phase-extender phase InDels ?**
-    Yes, but it is conditional. The InDels should already be phased to a reliable haplotype block. That way when the haplotype is
-    being extended for those SNPs, InDels too get extended.
-    
-   **5) What is the minimal size of the haplotype block that is required? **  contd ....
-    The bigger the two haplotypes, the better is the likelyhood test of which haplotype is phased with which. By, default
-    I have kept this number to 3 variants (SNPs exclusive) per haplotype block that needs extension.
-    
-   Does phase-extender do GW (genome wide) or CW (chromosome wide) haplotype phasing?
+   **_5) Does phase-extender do GW (genome wide) or CW (chromosome wide) haplotype phasing_**?
     There are certain situation when phase-extender is able to do GW or CW haplotype phasing.
-    A) If you have lots of samples where the haplotypes overlap between sample covers almost all chromosome length. In this
-       case we can run phase-extender for each sample there by extending the haplotype. After this phase-extender can be 
-       applied recursively on the updated data each time, there by extending the haplotypes for each sample to full chromosome
-       length and possibly to to full genome wide length. This is going to be more and more possible due to samples being
-       sequenced at higher coverage, increase in the size of paired-end sequence length, availability of large sequence reads
-       like pac-bio reads. The method for doing is explained in this link/website ..... ??
+    A) If you have lots of samples where the haplotypes breakpoint in one sample is bridged by other samples, such that breakpoint gets solved with each recursive application of `phase-Extender` then it is possible to obtain CW and GW haplotype. 
+    In this case we can run phase-extender for each sample there by extending the haplotype to certain extent. After this phase-extender can be applied recursively on the updated data each time, there by extending the haplotypes for each sample to full chromosome length and possibly to to full genome wide length. There is greater likelyhood of obtaining GW phase if samples are sequenced at higher coverage, increase in paired-end sequence length, availability of large sequence reads like pac-bio reads.
+    B) Another situation when GW, CW phase extension might be possible is when you have at least few samples which have haplotype resolved at GW/CW level. These can include fully phased data like genome matrix file, fully phased VCF data, fully phased haplotype reference panel. For this the fully phased sample should be provided as one single blocks in the group of sample that is piped to `phase-extender`.
        
-    B) Another situation when GW/CW phase extension might be possible is when you have at least few samples which have haplotype 
-       resolved at GW/CW level. These can include fully phased data like genome matrix file, fully phased VCF data, fully phased
-       haplotype blocks. For this the fully phased sample should be provided as one single blocks in the group of sample that is
-       fed to phase-extender. Here is an example.... ??
-       
-   Does phase-extender phase the SNPs that are not phased to any other SNPs?
-    For, now phase-extender doesn't have algorithm built into it to do so. I am hoping to add that ASAP.
+   **_6) Does phase-extender phase non readbackphase SNPs_**?
+   For, now phase-extender doesn't have algorithm built into it to do so. This will be included in future updates.
       
-   Does phase-extender impute missing genotypes?
-    No, it does not. I have not developed any algorithm so far to impute missing genotypes. Should anyone be interested in 
-    developing an algorithm, and have data to do so; I would be more than happy to.  
+   **_7) Does phase-extender impute missing genotypes_**?
+   No, it does not. It is a possible future update. 
     
-   Does phase-extender use haplotype reference panel?
-    No, until now. Though it should be possible in near future.
+   **_8) Does phase-extender use haplotype reference panel_**?
+   Yes, it does. Though the VCF (haplotype reference panel) should be convert to appropriate haplotype file.
    
-   Does phase-extender use recombination into account?
-    No and possibly these feature will be of least importance in phase-extender. Phase-Extender mostly relies on already       
-    phased haplotype block from other samples. These haplotype blocks which were phased in other sample but in SOI were used 
-    to build transition probabilities. There is strong assumption that variation in other samples are not the result of 
-    recombination but only mutation.
+   **_9) Does phase-extender use recombination into account_**? 
+   No and possibly these feature will be of least importance in phase-extender. Phase-Extender mostly relies on already phased short haplotype block with in sample and the relationship of that block with other samples. These haplotype blocks which were phased in other sample but has breakpoint in SOI are used to build transition probabilities. There is an assumption that recombination is less likely to occur exactly at that breakpoint or near it. So, most of the variation among samples around the break point are not the result of recombination but only mutation.
     
-   Does phase-extender phase rare genotypes?
-    Yes, it does. But, the rare genotype should be the part (phased to) of phased haplotype blocks. This is one of the good 
-    thing about phase-extender compared to other tools when it come to rare genotype. When several SNPs are phased together 
-    to extend the haplotype, rare genotypes are really hard to phase accurately - the reason being the statistical 
-    significance of the rare genotype belonging to either two phase state is highly ambigous. But, if the rare genotype is 
-    attached to a haplotye block supported by read-back phasing, this makes phasing of rare genotypes most accurate, since 
-    the likely hoods are provided by other SNPs that are not rare.
+   **_10) Does phase-extender phase rare genotypes_**?
+   Yes, it does. But, the rare genotype should be the readbackphased to the short haplotype blocks. This is one of the advantage of `phase-extender` compared to other tools when it come to phasing rare genotype. When several SNPs are phased together to extend the haplotype, rare genotypes are really hard to phase accurately - the reason being the statistical significance of the rare genotype belonging to either two phase state is highly ambigous. But, if the rare genotype is attached to a haplotye block supported by read-back phasing, this makes phasing of rare genotypes most accurate, since the likely hoods are provided by other SNPs that are not rare.
     
-   How fast is phase-extender?
-    phase-extender is written in python-3, so it is slower than other tools that are built on the top of C, C++ or java.   
-    Coming from a pure biology background, learning python was one of the most enduring task I have taking and then 
-    building this tool was a big part of my PhD. I have optimized the part of calling VCF file using cyvcf2 (which is on 
-    average 4 times faster than old pyVCF module). phase-extender is also optimized for being able to run on multiple 
-    threads/process. But, if you are running phase-extender on big genome data and have very large number of samples, and    
-    running on laptop I suggest running on one thread, which may be time consuming but will reduce memory burden.
+   **_11) How fast is phase-extender_**?
+   phase-extender is written in python-3, so it is comparatively slower than other tools that are built on the top of C, C++ or java. 
+   Coming from a pure biology background, learning python was one of the most enduring task I have taken and then building this tool was a big part of my PhD. I have optimized the part of calling VCF file using cyvcf2 (which is on average 4 times faster than old pyVCF module). phase-extender is also optimized for being able to run on multiple threads/process. But, if you are running phase-extender on big genome data and have very large number of samples, and running on laptop I suggest running on one thread, which may be time consuming but will reduce memory burden.    
     
-   Who helped me during the preparation of this program?
-    I have not been very fortunate to surround myself or at least get face to face help from savvy computer programmers.
-    But, my heart is very thankful to people behind the web who have made me capable of working this problem out - Thanks 
-    to many people on biostars, stackoverflow, seqanswer and google web searches.
-    
-   Does phase-extender do trio based phase extension?
+   **_12) Does phase-extender do trio based phase extension_**?
+   No, it does not. It is a possible future update.
    
    
-   What should be the relatedness of my samples?
+   **_13) What should be the relatedness of my samples_**?
+   Within population, or within species level data are good.   
+   
+   Has phase-extender been tested and compared?
+   No.
+   
+   **_14) What is differece between phase extender and phase stitcher_**?
+   `phase-Extender` is a general puprpose haplotype phasing tools. `phase-Stitcher` is specifically for F1 hybrids.   
+   
+   **_15) Should I prepare my haplotype block file only using phaser_**?
+   `phase-Extender`, `phase-Stitcher` can be use with data generated from any RBphasing tool.
    
    
-   Has phase-extender been tested?
+   ## Acknowledgement
+   I have not been very fortunate to surround myself or at least get face to face help from savvy computer programmers. But, my heart is very thankful to people behind the web who have made me capable of working this problem out. **Thanks to many people on biostars, stackoverflow, seqanswer and google web searches who provided feedback on small question that were the part of `phase-Extender` project.** 
    
    
-   What is differece between phase extender and phase stitcher?
-   
-   
-   
-   Should I prepare my haplotype block file onlyusing phaser?
-   
-   
+   Should anyone be interested in futher improving this project via improvments on alrorithm and programming, I would be more than happy to.  
 
 
-# Expected capabilities in the future (coming soon)
-## Phase SNPs that are not assigned to ReadBackPhased blocks
-## Genotype imputation
-## Trio based phasing, Family based phasing
-## Higher order markov chain capabilities
-## Multiprocessing within chromosome
+## Expected capabilities in the future (coming soon)
+### Phase SNPs that are not assigned to ReadBackPhased blocks
+### Genotype imputation
+### Trio based phasing, Family based phasing
+### Higher order markov chain capabilities
+### Multiprocessing within chromosome
 
 
