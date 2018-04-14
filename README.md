@@ -89,7 +89,7 @@ sudo pip3 install -r requirements.txt
 ## Usage
 Requires a readbackphased `haplotype file` as input and returns an extended haplotype file and other results files containing statistics on the initial vs. extended haplotype. Optionally, haplotype reference panel (with same data structure as input haplotype) and bed file can be included to gain control over the outcome of phase extension.
 
-Check this detailed [step by step tutorial](https://everestial.github.io/phase-Extender/) for preparation of `input files` and know-how about running `phase-Extender`.
+Check this detailed [step by step tutorial](https://github.com/everestial/phase-Extender/wiki) for preparation of `input files` and know-how about running `phase-Extender`.
     
 <br>
 
@@ -251,13 +251,16 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
    **_15) Should I prepare my haplotype block file only using phaser_**?
    `phase-Extender`, `phase-Stitcher` can be use with data generated from any RBphasing tool.
    
+<br>
+<br>
    
    ## Acknowledgement
-   I have not been very fortunate to surround myself or at least get face to face help from savvy computer programmers. But, my heart is very thankful to people behind the web who have made me capable of working this problem out. **Thanks to many people on biostars, stackoverflow, seqanswer and google web searches who provided feedback on small question that were the part of `phase-Extender` project.** 
-   
+   I have not been very fortunate to surround myself or at least get face to face help from savvy computer programmers. But, my heart is very thankful to people behind the web who have made me capable of working this problem out. **Thanks to many people on biostars, stackoverflow, seqanswer and google web searches who provided feedback on small question that were the part of `phase-Extender` project.**    
    
    Should anyone be interested in futher improving this project via improvments on alrorithm and programming, I would be more than happy to.  
 
+<br>
+<br>
 
 ## Expected capabilities in the future (coming soon)
 ### Phase SNPs that are not assigned to ReadBackPhased blocks
@@ -265,5 +268,3 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
 ### Trio based phasing, Family based phasing
 ### Higher order markov chain capabilities
 ### Multiprocessing within chromosome
-
-
