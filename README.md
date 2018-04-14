@@ -192,7 +192,7 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
 <br>
 <br>
 
-## Some Q/A on phase-extender - to complete ??? : 
+## Some Q/A on phase-extender: 
 
   **_1) What kind of algorithm does phase-extender use ?_**  
     phase-extender uses first-order-transition probabilities from each level of genotypes from former haplotype block to each level of genotypes to later haplotype block. This version (v1) uses **forward-1stOrder-markov chains** and **backward-1stOrder-markov chains** transition probabilities. Future versions will follow improvements by adding markov-chains of higher order.    
