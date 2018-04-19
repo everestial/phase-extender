@@ -7,3 +7,4 @@ contig	pos	ref	all-alleles	ms01e_PI	ms01e_PG_al	ms02g_PI	ms02g_PG_al	ms03g_PI	ms
 2	15882454	.	.	4	C|T	4	T|C	7	T|T	7	T|T	7	C|T	7	C|T
 2	15882493	.	.	4	C|T	4	T|C	7	T|T	7	T|T	7	C|T	7	C|T
 2	15882505	.	.	4	A|T	4	T|A	7	T|T	7	T|T	7	A|C	7	A|T
+
