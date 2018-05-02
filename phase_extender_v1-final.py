@@ -197,9 +197,9 @@ def main():
     # input_file = 'allele_table_for_phase_extender.txt'
     print('  - using haplotype file "%s" ' % (input_file))
 
-    lods_cut_off = int(args.lods)  # log_of_odds_cut_off, default = 5
+    lods_cut_off = float(args.lods)  # log_of_odds_cut_off, default = 5
     print('  - using log2 odds cut off of "%s" ' % (lods_cut_off))
-    print(type(lods_cut_off))
+
 
     # minimum number of SNPs in a haplotype block before it can be phase-extended
     snp_threshold = args.snpTh   # default, snp_threshold = 3
@@ -297,8 +297,9 @@ def main():
             open(outputdir + '/' +"missingdata_" + soi + ".txt", 'w') as missing_data:
 
         print()
-        print('Reading the input haplotype file "%s" '%input_data.name)
-        print('Lines that have data missing for sample "%s" is written in the file "%s" '
+        print()
+        print('# Reading the input haplotype file "%s" '%input_data.name)
+        print('  - Lines that have data missing for sample "%s" is written in the file "%s" '
               %(soi, missing_data.name))
         #print('extended haplotype data for sample "%s" will be written in the file "%s" '
               #%(soi, update_data.name))
@@ -320,8 +321,8 @@ def main():
 
         else:
             print()
-            print('Genomic bed file is not provided ... ')
-            print('So, phase extension will run throughout the genome.')
+            print('# Genomic bed file is not provided ... ')
+            print('  - So, phase extension will run throughout the genome.')
 
 
         # check and load "haplotype reference panel"
@@ -334,8 +335,8 @@ def main():
         else:
             print()
             hap_panel_samples = []
-            print('Haplotype reference panel is not provided ... ')
-            print('So, phase extension will run using the samples available in the input haplotype file. ')
+            print('# Haplotype reference panel is not provided ... ')
+            print('  So, phase extension will run using the samples available in the input haplotype file. ')
 
 
         ''' Step 01 - C: from the input file
@@ -354,11 +355,12 @@ def main():
 
         for lines in input_data:
             if lines.startswith('contig'):
-                head = lines.strip('\n').split('\t')
+                head = lines.rstrip('\n').split('\t')
 
                 # find the index positions of sample-of-interest's PI and PG_allele
                 soi_PI_index = head.index(soi + '_PI')
                 soi_PG_index = head.index(soi + '_PG_al')
+
 
                 # update the heading for good_data and missing_data
                 good_data += '\t'.join(head) + '\n'
@@ -369,10 +371,13 @@ def main():
 
             ''' Now, for the soi if PI and PG are missing (i.e, represented by '.') write it into
             "missing_file.txt", else store it as "good_data" '''
-            lines = lines.strip('\n').split('\t')
+            lines = lines.rstrip('\n').split('\t')
+            if len(lines) <= 1:  # to control for the last ('\n') line if present
+                break
+
 
             # separate the lines with missing data (no "PI" or has "PI" but ambiguous SNP like "*")
-            if lines[soi_PI_index] == '.' or lines[soi_PG_index] == '.':
+            if lines[soi_PI_index] == '.': # or lines[soi_PG_index] == '.':
                 missing_data.write('\t'.join(lines) + '\n')
 
             # write the good part of the RB-phased VCF
@@ -383,9 +388,9 @@ def main():
             # - just remove "lines[soi_PG_index]" to put SNPs with no PI index inside "good_data"
 
         print()
-        print('Filtered the lines that have data missing for sample "%s"; check the file "%s" '
+        print('# Filtered the lines that have data missing for sample "%s"; check the file "%s" '
               %(soi, missing_data.name))
-        print('Loaded read-backphased variants onto the memory')
+        print('  - Loaded read-backphased variants onto the memory')
 
 
         ''' Step 01 - D: Prepare the samples to use the data from. '''
@@ -447,8 +452,8 @@ def main():
             del hap_panel
 
         else:
-            print('Haplotype reference panel is not provided....\n'
-                  'Only using the samples in the input ("%s") data.' %(input_data.name))
+            print('# Haplotype reference panel is not provided....\n'
+                  '  - Only using the samples in the input ("%s") data.' %(input_data.name))
 
 
         ''' Step 02 - A (add on - ii) ** merge bed-regions if provided to limit phase extension
@@ -456,13 +461,13 @@ def main():
         print()
         if use_bed == 'no':
             # group data only at "contig" level, keep the sort as it is
-            print('No bed file is given ... ')
-            print('So, grouping the haplotype file only by chromosome (contig)')
+            print('# No bed file is given ... ')
+            print('  - So, grouping the haplotype file only by chromosome (contig)')
 
             good_data_by_group = good_data.groupby('contig', sort=False)
 
         elif use_bed == 'yes':
-            print('Merging the bed boundries from "%s" with the input haplotype file ... "%s" '
+            print('# Merging the bed boundries from "%s" with the input haplotype file ... "%s" '
                   % (bed_file, input_data.name))
 
             # merge/intersect the "bed regions" and "haplotype file"
@@ -478,7 +483,7 @@ def main():
             - Compute the statistics of the initial phased file for SOI if required '''
 
         print()
-        print('Writing initial haplotype for sample "%s" in the file "%s" '
+        print('# Writing initial haplotype for sample "%s" in the file "%s" '
               %(soi, 'initial_haplotype_' + soi + '.txt'))
 
         # select the colums of interest
@@ -491,12 +496,12 @@ def main():
 
 
         if hapstats == 'yes':
-            print('Computing the descriptive statistics of the haplotype data before phase extension')
+            print('  - Computing the descriptive statistics of the haplotype data before phase extension')
 
             # pipe the data to a function to compute haplotype statistics
             compute_haplotype_stats(initial_haplotype, soi, prefix='initial')
         else:
-            print('Proceeding to phase-extension without preparing descriptive statistics of initial haplotype state.')
+            print('  - Proceeding to phase-extension without preparing descriptive statistics of initial haplotype state.')
 
 
 
@@ -504,7 +509,7 @@ def main():
                          - Store data in disk or memory.
                          - Multiprocess each chunks separately '''
         print()
-        print('Starting multiprocessing using "%i" processes ' %(nt))
+        print('# Starting multiprocessing using "%i" processes ' %(nt))
 
         # ** new method: create a folder to store the data to disk (rather than memory)
         # ** (see old method for comparison)
@@ -571,6 +576,7 @@ def multiproc(sample_list, pool, hapstats):
           "time elapsed: '%s' " %(time.time() - time01))
     print('Global maximum memory usage: %.2f (mb)' % current_mem_usage())
     print("Merging dataframes together ....." )
+    print()
 
 
     ''' Step 10: merge the returned result (extended haplotype block by each contigs)
@@ -637,7 +643,7 @@ def groupby_and_read(file_path):
     ''' After doing groupby (by chromosome) we pipe in data, for each chromosome '''
 
     time_chr = time.time()  # to time the process in each chromosome
-    print('Extending haplotype blocks in chromosome (contig) %s' %(chr_))
+    print('## Extending haplotype blocks in chromosome (contig) %s' %(chr_))
 
     del good_data_by_contig
 
@@ -701,8 +707,8 @@ def groupby_and_read(file_path):
         data_by_bed_void = None; df_list_by_bed = None; phase_extended_by_bed=None
 
 
-        print('Phase-extension completed for contig "%s" in %s seconds' % (chr_, time.time() - time_chr))
-        print('Worker maximum memory usage: %.2f (mb)' % (current_mem_usage()))
+        print('  - Phase-extension completed for contig "%s" in %s seconds' % (chr_, time.time() - time_chr))
+        print('  - Worker maximum memory usage: %.2f (mb)' % (current_mem_usage()))
         print()
 
         return phase_extended_by_chr.sort_values(by=['pos'])
@@ -738,8 +744,8 @@ def groupby_and_read(file_path):
         del contigs_group
 
 
-    print('Phase-extension completed for contig "%s" in %s seconds' %(chr_, time.time()-time_chr))
-    print('Worker maximum memory usage: %.2f (mb)' % (current_mem_usage()))
+    print('  - Phase-extension completed for contig "%s" in %s seconds' %(chr_, time.time()-time_chr))
+    print('  - Worker maximum memory usage: %.2f (mb)' % (current_mem_usage()))
     print()
 
     # return the phase-extended haplotype back to the pool-process ..
@@ -752,7 +758,7 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
                                sample_list, num_of_hets, lods_cut_off):
 
     #print()
-    print('Grouping the dataframe using unique "PI - phased index" values. ')
+    print('  - Grouping the dataframe using unique "PI - phased index" values. ')
 
 
     ''' Step 02 - D: group dataframe again by "PI keys" of soi and then
@@ -798,7 +804,7 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
 
 
     #print()
-    print('Starting MarkovChains for contig %s' % chr_)
+    print('  - Starting MarkovChains for contig %s' % chr_)
     ''' Step 03 - B : now pipe the data for phase extension '''
     ''' Step 03 - B : And, iterate over two consecutive Haplotype-Blocks at once. This is done to obtain all
     possible Haplotype configurations between two blocks. The (keys,values) for first block is represented as
@@ -967,21 +973,22 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
           # .. this helps in using the closest genomic position between consecutive blocks thus ..
           # .. downsizing the effects created by recombination.
         lhfc_f, lhsc_f = \
-            compute_transitions_probs(soi, sample_list, k1, k2, v1, v2, num_of_hets,
+            compute_maxLh_score(soi, sample_list, k1, k2, v1, v2, num_of_hets,
                                       hapb1a_hapb2a, hapb1b_hapb2b,
                                       hapb1a_hapb2b, hapb1b_hapb2a, orientation=reversed)
 
         #### for reverse chain   ########
         # set "orientation=lambda..." just passes a null value keeping orientation as it is.
-        lhfc_r, lhsc_r = compute_transitions_probs \
+        lhfc_r, lhsc_r = compute_maxLh_score \
             (soi, sample_list, k1_r, k2_r, v1_r, v2_r, num_of_hets,
              hapb1a_hapb2a_r, hapb1b_hapb2b_r,
              hapb1a_hapb2b_r, hapb1b_hapb2a_r, orientation=lambda x: x)
 
 
 
-        ''' Step 05-06 are inside the function "compute_transitions_probs()". The values
+        ''' Step 05-06 are inside the function "compute_maxLh_score()". The values
         (lhfc_f, lhsc_f, lhfc_r, lhsc_r) returned from this function is then used in Step 07. '''
+
 
 
         ''' Step 07 :  previous (Step 06) returns the likelyhoods and/or LODs score for both "parallel"
@@ -991,6 +998,8 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
         ''' Step 07 - A(i): calculate the average of the likelyhoods, odds and then log2 of odds. '''
         # average of the likelyhooods for first vs. second configuration
         # (from both forward and reverse algorithm)
+        # ** note: "maxed_as" variable doesn't apply here, because maxLH using forward vs. reverse ..
+          # .. are just re-estimates. So, we simply take and average on both "maxSum" and "maxPd"
         avg_lhfc = Decimal(lhfc_f + lhfc_r) / 2
         avg_lhsc = Decimal(lhsc_f + lhsc_r) / 2
 
@@ -1095,7 +1104,7 @@ def merge_hap_with_bed(my_bed, good_data):
 
 
 ''' function to compute transition probs between two consecutive blocks. '''
-def compute_transitions_probs(soi, sample_list, k1, k2, v1, v2, num_of_hets,
+def compute_maxLh_score(soi, sample_list, k1, k2, v1, v2, num_of_hets,
                               hapb1a_hapb2a, hapb1b_hapb2b,
                               hapb1a_hapb2b, hapb1b_hapb2a,orientation):
 
@@ -1170,14 +1179,40 @@ def compute_transitions_probs(soi, sample_list, k1, k2, v1, v2, num_of_hets,
         # setting dictionary for "emission/nucleotide counts"
         nucleotide_count_dict = {'A': 0, 'T': 0, 'G': 0, 'C': 0}
 
+        # dictionary for "emission" probabilities
+        nucleotide_prob_dict = nucleotide_count_dict.copy()   # makes a shallow copy
+
+
+
         ''' Creating variables to store the product-values of the transition probabilities.
         These are updated for each level of "n" paired with each level of "m". '''
         # potp -> product of transition probability
-        potp_hapb1a_b2a = 1
-        potp_hapb1b_b2b = 1
 
-        potp_hapb1a_b2b = 1
-        potp_hapb1b_b2a = 1
+        ##** need to change here ??
+
+        ############# deprecated ??
+        #potp_hapb1a_b2a = 1
+        #potp_hapb1b_b2b = 1
+
+        #potp_hapb1a_b2b = 1
+        #potp_hapb1b_b2a = 1
+        #########################
+
+        if maxed_as == '+':
+            tp_hapb1a_b2a = 0
+            tp_hapb1b_b2b = 0
+
+            tp_hapb1a_b2b = 0
+            tp_hapb1b_b2a = 0
+
+        elif maxed_as == '*':
+            tp_hapb1a_b2a = 1
+            tp_hapb1b_b2b = 1
+
+            tp_hapb1a_b2b = 1
+            tp_hapb1b_b2a = 1
+
+
 
 
         ''' Step 05 - A (ii) :
@@ -1186,7 +1221,15 @@ def compute_transitions_probs(soi, sample_list, k1, k2, v1, v2, num_of_hets,
         - only calculated from "v1" at n-th level and only once for each parse/iteration '''
         for (x, y) in sample_list:
             for nucleotide in 'ATGC':
-                nucleotide_count_dict[nucleotide] += v1[y][n].count(nucleotide)
+                nucleotide_count_dict[nucleotide] += v1[y][n].split('|').count(nucleotide)
+
+
+        # now, compute emission probabilities
+        total_nucl = sum(list(nucleotide_count_dict.values()))
+
+        for ky, vy in nucleotide_count_dict.items():
+            #print(ky, vy)
+            nucleotide_prob_dict[ky] = vy/total_nucl
 
 
         ''' Step 05 - B : Count number of transition from each nucleotide (n-th) to each nucleotide (m-th).
@@ -1295,7 +1338,8 @@ def compute_transitions_probs(soi, sample_list, k1, k2, v1, v2, num_of_hets,
             ''' Step 06 - A (i) : compute all observed transition probabilities '''
             for (from_, to) in transition_prob_dict:
                 transition_prob_dict[(from_, to)] = \
-                    compute_transition_probs(transition_count_dict[(from_, to)], nucleotide_count_dict[from_])
+                    compute_transition_probs(transition_count_dict[(from_, to)],
+                                             nucleotide_count_dict[from_])
 
 
             ''' Step 06 - A (ii) : find observed configuration for soi at "n-th" and "m-th" level
@@ -1312,10 +1356,42 @@ def compute_transitions_probs(soi, sample_list, k1, k2, v1, v2, num_of_hets,
              - ** no need to add pseudo-counts, because if no haplotypes are observed in any samples except soi,
                the prob(from_, to) for each configuration will be 1/4 there by nullifying the likelyhoods to "1".
             '''
-            potp_hapb1a_b2a *= transition_prob_dict[hapb1a_hapb2a_transition]
-            potp_hapb1b_b2b *= transition_prob_dict[hapb1b_hapb2b_transition]
-            potp_hapb1a_b2b *= transition_prob_dict[hapb1a_hapb2b_transition]
-            potp_hapb1b_b2a *= transition_prob_dict[hapb1b_hapb2a_transition]
+
+            ######### deprecated ??
+            #potp_hapb1a_b2a *= transition_prob_dict[hapb1a_hapb2a_transition]
+            #potp_hapb1b_b2b *= transition_prob_dict[hapb1b_hapb2b_transition]
+            #potp_hapb1a_b2b *= transition_prob_dict[hapb1a_hapb2b_transition]
+            #potp_hapb1b_b2a *= transition_prob_dict[hapb1b_hapb2a_transition]
+
+
+            # new additions ****
+            # adding emission probabilities to the method to get more fair estimate of the likelihoods
+            # p(X given Y) = p(X) * p(XtY - transitions)
+            # ** for future: this if/else can be rather fixed by establishing a new function
+            ## we are multiplying p(transition)*p(emission)  and doing maxSum or maxProd depending upon what is required
+            ## the codes below can be dramatically improved.
+
+            if maxed_as == '+':
+                tp_hapb1a_b2a += transition_prob_dict[hapb1a_hapb2a_transition] \
+                                 * Decimal(nucleotide_prob_dict[hapb1a_hapb2a_transition[0]])
+                tp_hapb1b_b2b += transition_prob_dict[hapb1b_hapb2b_transition] \
+                                 * Decimal(nucleotide_prob_dict[hapb1b_hapb2b_transition[0]])
+                tp_hapb1a_b2b += transition_prob_dict[hapb1a_hapb2b_transition] \
+                                 * Decimal(nucleotide_prob_dict[hapb1a_hapb2b_transition[0]])
+                tp_hapb1b_b2a += transition_prob_dict[hapb1b_hapb2a_transition] \
+                                 * Decimal(nucleotide_prob_dict[hapb1b_hapb2a_transition[0]])
+
+            elif maxed_as == '*':
+                tp_hapb1a_b2a *= transition_prob_dict[hapb1a_hapb2a_transition] \
+                                 * Decimal(nucleotide_prob_dict[hapb1a_hapb2a_transition[0]])
+                tp_hapb1b_b2b *= transition_prob_dict[hapb1b_hapb2b_transition] \
+                                 * Decimal(nucleotide_prob_dict[hapb1b_hapb2b_transition[0]])
+                tp_hapb1a_b2b *= transition_prob_dict[hapb1a_hapb2b_transition] \
+                                 * Decimal(nucleotide_prob_dict[hapb1a_hapb2b_transition[0]])
+                tp_hapb1b_b2a *= transition_prob_dict[hapb1b_hapb2a_transition] \
+                                 * Decimal(nucleotide_prob_dict[hapb1b_hapb2a_transition[0]])
+            ##
+
 
 
         ''' Step 06 - C : compute the max sum or max product of the transition probabilities
@@ -1324,18 +1400,28 @@ def compute_transitions_probs(soi, sample_list, k1, k2, v1, v2, num_of_hets,
         So, "cul_of_pt_hapb1a_b2a" is the sum of the likelyhoods of hapBlock1A being phased with hapBlock2A'''
 
         if maxed_as == '+':
-            cul_of_pt_hapb1a_b2a += potp_hapb1a_b2a
-            cul_of_pt_hapb1b_b2b += potp_hapb1b_b2b
+            cul_of_pt_hapb1a_b2a += tp_hapb1a_b2a
+            cul_of_pt_hapb1b_b2b += tp_hapb1b_b2b
 
-            cul_of_pt_hapb1a_b2b += potp_hapb1a_b2b
-            cul_of_pt_hapb1b_b2a += potp_hapb1b_b2a
+            cul_of_pt_hapb1a_b2b += tp_hapb1a_b2b
+            cul_of_pt_hapb1b_b2a += tp_hapb1b_b2a
 
         elif maxed_as == '*':
-            cul_of_pt_hapb1a_b2a *= (potp_hapb1a_b2a)
-            cul_of_pt_hapb1b_b2b *= (potp_hapb1b_b2b)
+            cul_of_pt_hapb1a_b2a *= (tp_hapb1a_b2a)
+            cul_of_pt_hapb1b_b2b *= (tp_hapb1b_b2b)
 
-            cul_of_pt_hapb1a_b2b *= (potp_hapb1a_b2b)
-            cul_of_pt_hapb1b_b2a *= (potp_hapb1b_b2a)
+            cul_of_pt_hapb1a_b2b *= (tp_hapb1a_b2b)
+            cul_of_pt_hapb1b_b2a *= (tp_hapb1b_b2a)
+
+
+    ### Test markers
+    #print()
+    #print(orientation)
+    #print('cumulative scores')
+    #print(cul_of_pt_hapb1a_b2a)
+    #print(cul_of_pt_hapb1b_b2b)
+    #print(cul_of_pt_hapb1a_b2b)
+    #print(cul_of_pt_hapb1b_b2a)
 
 
     ''' Step 06 - D : Now, compute the "Odds ratio" and "log2 of the Odds"
@@ -1344,8 +1430,16 @@ def compute_transitions_probs(soi, sample_list, k1, k2, v1, v2, num_of_hets,
     ''' Step 06 - D(i) : compute the likely hood of first configuration (lhfc) vs. second configuration (lhsc)
     First Configuration = hapb1a with hapb2a, and hapb1b with hapb2b.
     Second Configuration = hapb1a with hapb2b, and hapb1b with hapb2a. '''
-    lhfc = Decimal(cul_of_pt_hapb1a_b2a * cul_of_pt_hapb1b_b2b)
-    lhsc = Decimal(cul_of_pt_hapb1a_b2b * cul_of_pt_hapb1b_b2a)
+    if maxed_as == '+':
+        lhfc = Decimal(cul_of_pt_hapb1a_b2a + cul_of_pt_hapb1b_b2b)
+        lhsc = Decimal(cul_of_pt_hapb1a_b2b + cul_of_pt_hapb1b_b2a)
+
+    elif maxed_as == '*':
+        lhfc = Decimal(cul_of_pt_hapb1a_b2a * cul_of_pt_hapb1b_b2b)
+        lhsc = Decimal(cul_of_pt_hapb1a_b2b * cul_of_pt_hapb1b_b2a)
+
+    #lhfc = Decimal(cul_of_pt_hapb1a_b2a * cul_of_pt_hapb1b_b2b)
+    #lhsc = Decimal(cul_of_pt_hapb1a_b2b * cul_of_pt_hapb1b_b2a)
 
     return lhfc, lhsc
 
