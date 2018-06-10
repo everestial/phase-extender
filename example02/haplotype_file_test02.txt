@@ -1,4 +1,4 @@
-contig	pos	ref	all-alleles	all-freq	MA605_PI	MA605_PG_al	MA611_PI	MA611_PG_al	MA622_PI	MA622_PG_al	MA625_PI	MA625_PG_al	MA629_PI	MA629_PG_al	Ncm8_PI	Ncm8_PG_al	Sp154_PI	Sp154_PG_al	Sp164_PI	Sp164_PG_al	Sp21_PI	Sp21_PG_al	Sp3_PI	Sp3_PG_al	Sp76_PI	Sp76_PG_al	SpNor33_PI	SpNor33_PG_al	ms01e_PI	ms01e_PG_al	ms02g_PI	ms02g_PG_al	ms03g_PI	ms03g_PG_al	ms04h_PI	ms04h_PG_al
+CHROM	POS	REF	all-alleles	all-freq	MA605:PI	MA605:PG_al	MA611:PI	MA611:PG_al	MA622:PI	MA622:PG_al	MA625:PI	MA625:PG_al	MA629:PI	MA629:PG_al	Ncm8:PI	Ncm8:PG_al	Sp154:PI	Sp154:PG_al	Sp164:PI	Sp164:PG_al	Sp21:PI	Sp21:PG_al	Sp3:PI	Sp3:PG_al	Sp76:PI	Sp76:PG_al	SpNor33:PI	SpNor33:PG_al	ms01e:PI	ms01e:PG_al	ms02g:PI	ms02g:PG_al	ms03g:PI	ms03g:PG_al	ms04h:PI	ms04h:PG_al
 2	180278	A	A,AT	0.7,0.3	.	.	.	.	.	.	.	.	7	A|AT	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.
 2	180303	TATCTGG	TATCTGG,T	0.75,0.25	.	.	.	.	.	.	.	.	7	TATCTGG|T	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.
 2	180311	TCA	TCA,T	0.75,0.25	.	.	.	.	.	.	.	.	7	TCA|T	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.	.

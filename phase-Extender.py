@@ -1,4 +1,4 @@
-#!/home/bin/python3
+#!/usr/bin/python3
 
 
 ## Checking required modules
@@ -27,9 +27,6 @@ import shutil
 import matplotlib.pyplot as plt
 
 
-
-
-
 def main():
 
     print()
@@ -42,7 +39,7 @@ def main():
     print()
 
 
-    print("Loading the argument variables and assigning values ....")
+    print("Loading the argument variables ....")
 
     ''' Define required argument for interactive mode program. '''
     parser = argparse.ArgumentParser()
@@ -83,7 +80,8 @@ def main():
                              "This is useful for comparing the results when different individuals, "
                              "populations are used in phase extension process."
                              "Options: 'all','refHap','input','comma separated name of samples'. "
-                             "default: 'all' - i.e all the samples in (refHap + input) will be used.",
+                             "default: 'all' - i.e all the samples in (refHap + input) will be used, "
+                             "if refHap is given else all samples only from input file is used.",
                         default='all', required=False)
 
     parser.add_argument("--bed",
@@ -280,7 +278,7 @@ def main():
 
 
 
-    '''Assign the number of process.
+    '''Assign the number of process - this is the optimal position to start multiprocessing ! 
        **note: number of process should be declared after all the global variables are declared,
        because each pool will need to copy the variable/value of global variables. '''
     pool = Pool(processes=nt)  # number of pool to run at once; default at 1
@@ -317,7 +315,9 @@ def main():
             print('Reading the bed file "%s" ' % (bed_file))
             print('Phase extension will be limited to regions declared in the bed file')
 
-            my_bed = pd.read_csv(bed_file, sep='\t', names=['contig', 'start', 'end'])
+            my_bed = pd.read_csv(bed_file, sep='\t', names=['CHROM', 'start', 'end'])
+            my_bed['CHROM'] = my_bed['CHROM'].astype(str)  # setting CHROM column as string type ..
+            #  this is necessary because there has been problem with groupby operations downstream
 
         else:
             print()
@@ -327,7 +327,8 @@ def main():
 
         # check and load "haplotype reference panel"
         if use_refhap == 'yes':
-            hap_panel = pd.read_csv(refhap, sep='\t').drop(['ref', 'alt'], axis=1)
+            hap_panel = pd.read_csv(refhap, sep='\t').drop(['REF', 'ALT'], axis=1)
+            hap_panel['CHROM'] = hap_panel['CHROM'].astype(str)  # setting CHROM as string type data
 
             # also find the sample in refHap panel
             hap_panel_samples = find_samples(list(hap_panel.keys()))
@@ -354,12 +355,12 @@ def main():
         good_data = ''   # empty string
 
         for lines in input_data:
-            if lines.startswith('contig'):
+            if lines.startswith('CHROM'):
                 head = lines.rstrip('\n').split('\t')
 
                 # find the index positions of sample-of-interest's PI and PG_allele
-                soi_PI_index = head.index(soi + '_PI')
-                soi_PG_index = head.index(soi + '_PG_al')
+                soi_PI_index = head.index(soi + ':PI')
+                soi_PG_index = head.index(soi + ':PG_al')
 
 
                 # update the heading for good_data and missing_data
@@ -377,7 +378,7 @@ def main():
 
 
             # separate the lines with missing data (no "PI" or has "PI" but ambiguous SNP like "*")
-            if lines[soi_PI_index] == '.': # or lines[soi_PG_index] == '.':
+            if lines[soi_PI_index] == '.' or '.' in lines[soi_PG_index]:
                 missing_data.write('\t'.join(lines) + '\n')
 
             # write the good part of the RB-phased VCF
@@ -385,7 +386,7 @@ def main():
                 good_data += '\t'.join(lines) + '\n'
 
             # ** for future: this above code can be modified to include non-phased SNP variants.
-            # - just remove "lines[soi_PG_index]" to put SNPs with no PI index inside "good_data"
+            # - just remove "lines[soi:PG_index]" to put SNPs with no PI index inside "good_data"
 
         print()
         print('# Filtered the lines that have data missing for sample "%s"; check the file "%s" '
@@ -410,14 +411,15 @@ def main():
             sample_list = sample_list + hap_panel_samples
 
         elif use_sample == 'refHap':
-            sample_list = hap_panel_samples + [(soi + "_PI", soi +"_PG_al")]
+            sample_list = hap_panel_samples + [(soi + ":PI", soi +":PG_al")]  # add the self sample name to account ..
+            # .. for missing observations instead of using pseudo count
 
         # if specific select samples are of interest, split the sample names and then prepare ..
         # .. the list of tuples of sample "PI" and "PG_al"
         else:
             sample_list = use_sample.split(',')
-            sample_list = [((x + '_PI'), (x + '_PG_al')) for x in sample_list] + \
-                          [(soi + "_PI", soi +"_PG_al")]
+            sample_list = [((x + ':PI'), (x + ':PG_al')) for x in sample_list] + \
+                          [(soi + ":PI", soi +":PG_al")]
         # print()
         #print('sample listing to use')
         #print(sample_list)
@@ -428,11 +430,13 @@ def main():
             A) group the data by "contig" which helps in multiprocessing/threading.
               A - optional: if "bed regions" are given add the bed_regions boundries as "start_end"
             B) within each group, group again by "PI keys" of soi and then sort by
-               minimum "pos" value for each "PI key"
+               minimum "POS" value for each "PI key"
             C) then pipe the data within each "PI key" for phase-extension computation.'''
 
         ''' Step 02 - A : read good part of the data into "pandas" as dataframe.'''
         good_data = pd.read_table(StringIO(good_data), delimiter='\t')
+        good_data['CHROM'] = good_data['CHROM'].astype(str)  # setting CHROM as string type data # this is necessary
+        # to maintain proper groupby downstream
 
         # ** only if "good_data" is desired as text output
         #pd.DataFrame.to_csv(good_data, 'good_data_test.txt', sep='\t', header=True, index=False)
@@ -443,8 +447,9 @@ def main():
             # update the "good_data" (i.e, haplotype data)
             print('Merging input haplotype data with data from the hap-reference panel')
 
-            good_data = pd.merge(good_data, hap_panel, on=['contig', 'pos'],
+            good_data = pd.merge(good_data, hap_panel, on=['CHROM', 'POS'],
                                      how='left').fillna('.')
+            good_data.sort_values(by=['CHROM', 'POS'], inplace=True)
 
             # if haplotype and reference panel merged lines are desired
             #pd.DataFrame.to_csv(good_data, 'hap_and_refPanel_merged.txt', sep='\t',
@@ -464,7 +469,7 @@ def main():
             print('# No bed file is given ... ')
             print('  - So, grouping the haplotype file only by chromosome (contig)')
 
-            good_data_by_group = good_data.groupby('contig', sort=False)
+            good_data_by_group = good_data.groupby('CHROM', sort=False)
 
         elif use_bed == 'yes':
             print('# Merging the bed boundries from "%s" with the input haplotype file ... "%s" '
@@ -474,7 +479,6 @@ def main():
             # then groupy "contig" and "bed regions" by passing it to function "merge_hap_with_bed()"
             good_data_by_group = merge_hap_with_bed(my_bed, good_data)
             # ** for future: we can also run multiprocessing while merging "hap file" with "bed regions"
-
             del my_bed
 
 
@@ -487,8 +491,8 @@ def main():
               %(soi, 'initial_haplotype_' + soi + '.txt'))
 
         # select the colums of interest
-        initial_haplotype = good_data[['contig', 'pos', 'ref', 'all-alleles', soi + '_PI', soi + '_PG_al']]. \
-            sort_values(by=['contig', 'pos'], ascending=[True, True])
+        initial_haplotype = good_data[['CHROM', 'POS', 'REF', 'all-alleles', soi + ':PI', soi + ':PG_al']]. \
+            sort_values(by=['CHROM', 'POS'])
 
         # write this initial haplotype to a file
         pd.DataFrame.to_csv(initial_haplotype, outputdir + '/' + 'initial_haplotype_' + soi + '.txt',
@@ -513,9 +517,9 @@ def main():
 
         # ** new method: create a folder to store the data to disk (rather than memory)
         # ** (see old method for comparison)
-        if os.path.exists('chunked_Data'):
-            shutil.rmtree('chunked_Data', ignore_errors=False, onerror=None)
-        os.makedirs('chunked_Data/', exist_ok=True)
+        if os.path.exists('chunked_Data_' + soi):
+            shutil.rmtree('chunked_Data_' + soi, ignore_errors=False, onerror=None)
+        os.makedirs('chunked_Data_' + soi + '/', exist_ok=True)
 
 
         ''' Step 02 - B (i)'''
@@ -528,10 +532,11 @@ def main():
 
         # new method - storing data to disk
         for chr_, data_by_chr in good_data_by_group:
-            pd.DataFrame.to_csv(data_by_chr, 'chunked_Data/mydata_' + str(chr_), sep='\t', index=False, header=True)
+            pd.DataFrame.to_csv(data_by_chr, 'chunked_Data_' + soi + '/' + soi + ':' + str(chr_),
+                                sep='\t', index=False, header=True)
 
 
-        # clear memory  - ??? - does it do it's job ??
+        # clear memory - does it do it's job ** ??
         initial_haplotype = None; good_data = None; input_file = None
         good_data_by_group = None; samples = None; input_data = None
         data_by_chr = None
@@ -541,9 +546,9 @@ def main():
     multiproc(sample_list, pool, hapstats)
 
     # remove the chunked data folder ** (this can be retained if need be)
-    shutil.rmtree('chunked_Data', ignore_errors=False, onerror=None)
+    #shutil.rmtree('chunked_Data_' + soi, ignore_errors=False, onerror=None)
 
-    print('end :)')
+    print('End :)')
 
 
 def multiproc(sample_list, pool, hapstats):
@@ -554,8 +559,14 @@ def multiproc(sample_list, pool, hapstats):
         function "groupby_and_read()" to run phase extension.
         - After the data is passed into that function; the steps (02-C to 9) are covered there'''
 
-    path='chunked_Data/'   # create a temp folder
+    path='chunked_Data_' + soi   # create a temp folder
     file_path = [(item, sample_list) for item in list(os.path.join(path, part) for part in os.listdir(path))]
+
+    ## ** to do: Add "sort" method in "file_path" to read data in order. This way we can save ..
+      # time/memory while doing sorting within pandas dataframe.
+      # This sort method is available in "phase-Stitcher"
+
+
     result = pool.imap(groupby_and_read, file_path)
     pool.close()
     pool.join()
@@ -581,7 +592,7 @@ def multiproc(sample_list, pool, hapstats):
 
     ''' Step 10: merge the returned result (extended haplotype block by each contigs)
         together and write it to an output file. '''
-    result_merged = pd.concat(result).sort_values(by=['contig', 'pos'], ascending=[True,True])
+    result_merged = pd.concat(result).sort_values(by=['CHROM', 'POS'], ascending=[True,True])
     #result_merged = pd.DataFrame(result_merged).sort_values(by=['contig', 'pos'], ascending=[1,1])
 
     # write data to the final output file
@@ -612,12 +623,13 @@ def multiproc(sample_list, pool, hapstats):
     print('writing singletons and missing sites to extended haplotype')
     if addmissingsites == 'yes':
         missed_data_toadd = pd.read_csv(outputdir + '/' + "missingdata_" + soi + ".txt", sep='\t',
-                                        usecols=['contig', 'pos', 'ref', 'all-alleles',
-                                                 'all-freq',	soi + '_PI', soi + '_PG_al'])
+                                        usecols=['CHROM', 'POS', 'REF', 'all-alleles',
+                                                 soi + ':PI', soi + ':PG_al'])
+        missed_data_toadd['CHROM'] = missed_data_toadd['CHROM'].astype(str)
 
         # "result_merged" only contains RBphased data for SOI
-        new_df = pd.concat([result_merged, missed_data_toadd]).sort_values(by=['contig', 'pos'], ascending=[True, True])
-        new_df = new_df[['contig', 'pos', 'ref', 'all-alleles', 'all-freq',	soi + '_PI', soi + '_PG_al']]
+        new_df = pd.concat([result_merged, missed_data_toadd]).sort_values(by=['CHROM', 'POS'], ascending=[True, True])
+        new_df = new_df[['CHROM', 'POS', 'REF', 'all-alleles',	soi + ':PI', soi + ':PG_al']]
 
         # write data to the final output file
         pd.DataFrame.to_csv(new_df, outputdir + '/' + 'extended_haplotype_' + soi + '_allsites.txt',
@@ -635,7 +647,7 @@ def groupby_and_read(file_path):
 
     print()
     good_data_by_contig = open(file_path[0], 'r')
-    chr_ = good_data_by_contig.name.split('_')[-1]
+    chr_ = good_data_by_contig.name.split(':')[-1]
     sample_list = file_path[1]
     contigs_group = pd.read_csv(StringIO(good_data_by_contig.read()), sep='\t')
 
@@ -677,9 +689,9 @@ def groupby_and_read(file_path):
             if 'void' in bed_id:
                 # write data from these columns/row as a variable
                 data_by_bed_void = data_by_bed[
-                    ['contig', 'pos', 'ref', 'all-alleles', soi + '_PI', soi + '_PG_al']]
+                    ['CHROM', 'POS', 'REF', 'all-alleles', soi + ':PI', soi + ':PG_al']]
 
-                # ** write void lines separately (if needed)
+                # ** write void lines separately (if needed) - optimize in the future.
                 #pd.DataFrame.to_csv(data_by_bed_void, 'haplotype_file_excluded_regions.txt',
                                     #sep='\t', header=None, index=False)
 
@@ -711,7 +723,7 @@ def groupby_and_read(file_path):
         print('  - Worker maximum memory usage: %.2f (mb)' % (current_mem_usage()))
         print()
 
-        return phase_extended_by_chr.sort_values(by=['pos'])
+        return phase_extended_by_chr.sort_values(by=['POS'])
 
 
         ####################################   **********************
@@ -750,7 +762,7 @@ def groupby_and_read(file_path):
 
     # return the phase-extended haplotype back to the pool-process ..
     # .. which will be pd.concatenated after all pools are complete
-    return phase_extended_by_chr.sort_values(by=['pos'])
+    return phase_extended_by_chr.sort_values(by=['POS'])
 
 
 ''' now, read the two consecutive blocks to do phase extension. '''
@@ -762,19 +774,19 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
 
 
     ''' Step 02 - D: group dataframe again by "PI keys" of soi and then
-       sort by minimum "pos" value for each "PI key".
+       sort by minimum "POS" value for each "PI key".
        - This sorting is necessary because sometimes "haplotype blocks" are like 3-3-3-3  5-5-5  3-3-3-3
           - i.e there are small RBphased blocks within the boundry of larger RBphased block.
           - Not, sure what is causing this (prolly sampling difference of large vs. small chunks in PE reads)
           - This problem should go away in first round of haplotype-extension'''
 
     contigs_group = contigs_group. \
-        assign(New=contigs_group.groupby([soi + '_PI']).
-               pos.transform('min')).sort_values(['New', 'pos'])
+        assign(New=contigs_group.groupby([soi + ':PI']).
+               POS.transform('min')).sort_values(['New', 'POS'])
 
 
     ''' Step 03: Now, start reading the "contigs_group" for haplotype-extension.
-    A) Store the data as dictionary with 'header' values as keys. Some keys are: chr, pos, sample (PI, PG within sample),
+    A) Store the data as dictionary with 'header' values as keys. Some keys are: CHROM, POS, sample (PI, PG within sample),
        etc ... Then group the dictionary using unique "PI" values as 'keys' for grouping.
         Note: This dict-data should contain information about two adjacent haplotype blocks that needs extending.
         In this example I want to extend the haplotypes for "sample ms02g" which has two blocks 6 and 4.
@@ -789,7 +801,7 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
 
     ''' Step 03 - A : read the data with header as keys and groupby using that "keys" '''
     phased_dict = csv.DictReader(StringIO(contigs_group), delimiter='\t')
-    phased_grouped = itertools.groupby(phased_dict, key=lambda x: x[soi + '_PI'])
+    phased_grouped = itertools.groupby(phased_dict, key=lambda x: x[soi + ':PI'])
 
     ''' Since the dictionary isn't ordered, we return the order using OrderedDictionary '''
     # ** for future: there is room for improvement in here (memory and speed)
@@ -822,7 +834,7 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
         print('there is only one block, so skipping phase extension')
 
     # write header of the extended phase-block
-    extended_haplotype = '\t'.join(['contig', 'pos', 'ref', 'all-alleles', soi +'_PI', soi +'_PG_al']) + '\n'
+    extended_haplotype = '\t'.join(['CHROM', 'POS', 'REF', 'all-alleles', soi +':PI', soi +':PG_al']) + '\n'
 
     if writelod == 'yes':  # add extra field if desired by user
         extended_haplotype = extended_haplotype.rstrip('\n') + '\tlog2odds\n'
@@ -830,9 +842,9 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
 
     # write data/values from very first block.
     for k1, v1 in very_first_block:
-        for r1, vals in enumerate(v1[soi + '_PI']):
-            new_line = '\t'.join([v1['contig'][r1], v1['pos'][r1], v1['ref'][r1], v1['all-alleles'][r1],
-                                  v1[soi + '_PI'][r1], v1[soi + '_PG_al'][r1]]) + '\n'
+        for r1, vals in enumerate(v1[soi + ':PI']):
+            new_line = '\t'.join([v1['CHROM'][r1], v1['POS'][r1], v1['REF'][r1], v1['all-alleles'][r1],
+                                  v1[soi + ':PI'][r1], v1[soi + ':PG_al'][r1]]) + '\n'
             if writelod == 'yes':
                 new_line = new_line.rstrip('\n') + '\t.\n'
 
@@ -870,12 +882,12 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
         and similarly on the right as Block01-haplotype-B. '''
 
         # iterate over the first Haplotype Block, i.e the k1 block and v1 values
-        hap_block1a = [x.split('|')[0] for x in v1[soi + '_PG_al']]  # the left haplotype of block01
-        hap_block1b = [x.split('|')[1] for x in v1[soi + '_PG_al']]
+        hap_block1a = [x.split('|')[0] for x in v1[soi + ':PG_al']]  # the left haplotype of block01
+        hap_block1b = [x.split('|')[1] for x in v1[soi + ':PG_al']]
 
         # iterate over the second Haplotype Block, i.e the k2 block and v2 values
-        hap_block2a = [x.split('|')[0] for x in v2[soi + '_PG_al']]
-        hap_block2b = [x.split('|')[1] for x in v2[soi + '_PG_al']]
+        hap_block2a = [x.split('|')[0] for x in v2[soi + ':PG_al']]
+        hap_block2b = [x.split('|')[1] for x in v2[soi + ':PG_al']]
 
 
         ''' Step 03 - B (ii - 2-B) : Create possible haplotype configurations for "forward markov chain".
@@ -916,8 +928,8 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
         ** can also be used in the future if we want to phase the SNPs that have no assigned 'PI' values,
         i.e the "PI" will be "." '''
         if k1 == '.' or k2 == '.':
-            for xi in range(len(v2[soi + '_PI'])):
-                new_line = '\t'.join([v2['contig'][xi], v2['pos'][xi], v2['ref'][xi], v2['all-alleles'][xi],
+            for xi in range(len(v2[soi + ':PI'])):
+                new_line = '\t'.join([v2['CHROM'][xi], v2['POS'][xi], v2['REF'][xi], v2['all-alleles'][xi],
                                       k2, hapb1a_hapb2a[1][xi] + '|' + hapb1b_hapb2b[1][xi]]) + '\n'
                 if writelod == 'yes':
                     new_line = new_line.rstrip('\n') + '\t.\n'
@@ -941,14 +953,14 @@ def process_consecutive_blocks(contigs_group, soi, chr_, snp_threshold,
         before it can be phase-extended.
         - by default the minimum number of SNPs (exclusive) in the soi haplotype is set to 3.
         - If minimum requirement isn't met just skip extending the phase and write it to a file and continue. '''
-        number_of_snp_in_soi_v1 = len([x for x in v1[soi + '_PG_al'] if len(x) == 3])
-        number_of_snp_in_soi_v2 = len([x for x in v2[soi + '_PG_al'] if len(x) == 3])
+        number_of_snp_in_soi_v1 = len([x for x in v1[soi + ':PG_al'] if len(x) == 3])
+        number_of_snp_in_soi_v2 = len([x for x in v2[soi + ':PG_al'] if len(x) == 3])
 
         # print('number of SNPs: ', NumSNPsInsoi_v1, NumSNPsInsoi_v2)
         if number_of_snp_in_soi_v1 < snp_threshold \
                 or number_of_snp_in_soi_v2 < snp_threshold:
-            for xth, vals in enumerate(v2[soi + '_PI']):
-                new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth], v2['ref'][xth], v2['all-alleles'][xth],
+            for xth, vals in enumerate(v2[soi + ':PI']):
+                new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth], v2['REF'][xth], v2['all-alleles'][xth],
                                       k2, hapb1a_hapb2a[1][xth] + '|' + hapb1b_hapb2b[1][xth]]) + '\n'
                 if writelod == 'yes':
                     new_line = new_line.rstrip('\n') + '\t.\n'
@@ -1039,11 +1051,11 @@ def merge_hap_with_bed(my_bed, good_data):
 
     print('Extracting bed regions and position of the haplotype file ... ')
 
-    c1 = my_bed.contig.values
+    c1 = my_bed.CHROM.values
     s1 = my_bed.start.values
     e1 = my_bed.end.values
-    c2 = good_data['contig'].values
-    pos2 = good_data.pos.values
+    c2 = good_data['CHROM'].values
+    pos2 = good_data.POS.values
 
     # now, find the intersecting positions (between haplotype ("pos" values) and bed regions).
     overlap = (
@@ -1068,7 +1080,7 @@ def merge_hap_with_bed(my_bed, good_data):
         df_bed__hap_interesect.apply(lambda x: str(x.start) + '-' + str(x.end), axis=1))
 
     # only keep "contig, pos and intersection ("start-end")"
-    df_bed__hap_interesect = df_bed__hap_interesect[['contig', 'pos', 'start_end']]
+    df_bed__hap_interesect = df_bed__hap_interesect[['CHROM', 'POS', 'start_end']]
     # if regions of intersection are of interest
     #pd.DataFrame.to_csv(df_bed__hap_interesect, 'df_bed and hap intersect.txt', sep='\t', index=None, header=True)
 
@@ -1084,7 +1096,7 @@ def merge_hap_with_bed(my_bed, good_data):
 
     # fill the non-merging lines with "void"
     good_data_update = reduce(lambda left, right: pd.merge(
-        left, right, on=['contig', 'pos'], how='outer'), data_frames).fillna('na')
+        left, right, on=['CHROM', 'POS'], how='outer'), data_frames).fillna('na')
     # ** for future: assigning an unique identifier like "NA01, NA02" for non-intersecting lines as blocks.
 
 
@@ -1094,7 +1106,7 @@ def merge_hap_with_bed(my_bed, good_data):
 
 
     print('Grouping the haplotype file by chromosome (contigs) .... ')
-    good_data_by_group = good_data_update.groupby('contig', sort=False)
+    good_data_by_group = good_data_update.groupby('CHROM', sort=False)
 
     # clear memory
     del c1, c2, s1, e1, pos2, i, j, good_data, good_data_update, df_bed__hap_interesect, my_bed
@@ -1152,13 +1164,13 @@ def compute_maxLh_score(soi, sample_list, k1, k2, v1, v2, num_of_hets,
     num_of_het_site = 0
 
     # n-ranges from block01
-    for n in orientation(range(len(v1[soi + '_PI']))):
+    for n in orientation(range(len(v1[soi + ':PI']))):
 
         ''' Skip computation if n'th item is InDel or has "*" allele in the genotype.
         - These indels are only removed from computation part but are added in the final output file.
         - The Indels are phased based on which SNPs they hitchhike with. '''
-        if len(v1[soi + '_PG_al'][n]) > 3 \
-            or '*' in v1[soi + '_PG_al'][n]:
+        if len(v1[soi + ':PG_al'][n]) > 3 \
+            or '*' in v1[soi + ':PG_al'][n]:
             continue
 
         ''' only use certain number of HetVars to compute likely hood. This saves computation burden.
@@ -1238,12 +1250,12 @@ def compute_maxLh_score(soi, sample_list, k1, k2, v1, v2, num_of_hets,
 
         # to control certain number of hetVars to include in computation
         num_of_het_site_at_m = 0
-        for m in range(len(v2['ms02g_PI'])):    # m-ranges from block02
+        for m in range(len(v2[soi + ':PI'])):    # m-ranges from block02
 
             ''' Like at "n-th" level, skip if InDel present at this "m-th" level.
             But InDel will be phased along with hitchhiking SNPs. '''
-            if len(v2[soi + '_PG_al'][m]) > 3\
-                or '*' in v2[soi + '_PG_al'][m]:
+            if len(v2[soi + ':PG_al'][m]) > 3\
+                or '*' in v2[soi + ':PG_al'][m]:
                 continue
 
             ''' only use certain number of HetVars to compute likely hood at "later block".
@@ -1294,7 +1306,7 @@ def compute_maxLh_score(soi, sample_list, k1, k2, v1, v2, num_of_hets,
                  If the index (PI value) are same we create zip, if index (PI value) are
                  different we create product (see "possible haplotypes" below).
                  E.g        same PI-values     vs.   different PI-values
-                            pos  PI   PG_al          pos  PI   PG_al
+                            POS  PI   PG_al          POS  PI   PG_al
                     n'th    21   4     A|T           21   4    A|T
                     m'th    35   4     C|G           35   7    C|G
 
@@ -1352,7 +1364,7 @@ def compute_maxLh_score(soi, sample_list, k1, k2, v1, v2, num_of_hets,
 
             ''' Step 06 - B : computes the "product of transition probabilities" from "n-th" to
              several levels of "m" using for-loop.
-             - ** because the below code is indented one level below "for m in range(len(v2['ms02g_PI']))".
+             - ** because the below code is indented one level below "for m in range(len(v2['ms02g:PI']))".
              - ** no need to add pseudo-counts, because if no haplotypes are observed in any samples except soi,
                the prob(from_, to) for each configuration will be 1/4 there by nullifying the likelyhoods to "1".
             '''
@@ -1490,8 +1502,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
             k2_new = k1     # now, "k1" value gets carried over for next consecutive run
             flipped = 'no'  # since it was phased in parallel configuration, there for "no flip"
 
-            for xth in range(len(v2[soi + '_PI'])):
-                new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth],  v2['ref'][xth], v2['all-alleles'][xth],
+            for xth in range(len(v2[soi + ':PI'])):
+                new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth],  v2['REF'][xth], v2['all-alleles'][xth],
                                       k2_new, hapb1a_hapb2a[1][xth] + '|' + hapb1b_hapb2b[1][xth]]) + '\n'
                 if writelod == 'yes':
                     new_line = new_line.rstrip('\n') + '\t'+ str(round(lods2_score_1st_config, 5)) +'\n'
@@ -1504,8 +1516,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
             k2_new = k1
             flipped = 'yes'
 
-            for xth in range(len(v2[soi + '_PI'])):
-                new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth],  v2['ref'][xth], v2['all-alleles'][xth],
+            for xth in range(len(v2[soi + ':PI'])):
+                new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth],  v2['REF'][xth], v2['all-alleles'][xth],
                                       k2_new, hapb1b_hapb2b[1][xth] + '|' + hapb1a_hapb2a[1][xth]]) + '\n'
                 if writelod == 'yes':
                     new_line = new_line.rstrip('\n') + '\t'+ str(round(lods2_score_1st_config, 5)) +'\n'
@@ -1519,8 +1531,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
             flipped = ''
 
             # print('no phase extension, no flip')  # marker for debugging
-            for xth in range(len(v2[soi + '_PI'])):
-                new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth], v2['ref'][xth], v2['all-alleles'][xth],
+            for xth in range(len(v2[soi + ':PI'])):
+                new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth], v2['REF'][xth], v2['all-alleles'][xth],
                                       k2, hapb1a_hapb2a[1][xth] + '|' + hapb1b_hapb2b[1][xth]]) + '\n'
                 if writelod == 'yes':
                     new_line = new_line.rstrip('\n') + '\t'+ str(round(lods2_score_1st_config, 5)) +'\n'
@@ -1540,8 +1552,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
                 flipped = 'no'
 
                 #print (1_A is phased with 2_A, no flip, k2:%s \n' %k2_new)  # marker for debugging
-                for xth in range(len(v2[soi + '_PI'])):
-                    new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth],  v2['ref'][xth], v2['all-alleles'][xth],
+                for xth in range(len(v2[soi + ':PI'])):
+                    new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth],  v2['REF'][xth], v2['all-alleles'][xth],
                                           k2_new, hapb1a_hapb2a[1][xth] + '|' + hapb1b_hapb2b[1][xth]]) + '\n'
                     if writelod == 'yes':
                         new_line = new_line.rstrip('\n') + '\t' + str(round(lods2_score_1st_config, 5)) + '\n'
@@ -1555,8 +1567,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
                 flipped = 'yes'
 
                 #print ('1_A is phased with 2_B, yes flipped, k2:%s \n' % k2_new) # marker for debugging
-                for xth in range(len(v2[soi + '_PI'])):
-                    new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth],  v2['ref'][xth], v2['all-alleles'][xth],
+                for xth in range(len(v2[soi + ':PI'])):
+                    new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth],  v2['REF'][xth], v2['all-alleles'][xth],
                                           k2_new, hapb1b_hapb2b[1][xth] + '|' + hapb1a_hapb2a[1][xth]]) + '\n'
                     if writelod == 'yes':
                         new_line = new_line.rstrip('\n') + '\t' + str(round(lods2_score_1st_config, 5)) + '\n'
@@ -1569,8 +1581,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
                 flipped = ''
 
                 #print ('no phase extension, no flip, k2 %s\n' % k2)  # marker for debugging
-                for xth in range(len(v2[soi + '_PI'])):
-                    new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth], v2['ref'][xth], v2['all-alleles'][xth],
+                for xth in range(len(v2[soi + ':PI'])):
+                    new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth], v2['REF'][xth], v2['all-alleles'][xth],
                                           k2, hapb1a_hapb2a[1][xth] + '|' + hapb1b_hapb2b[1][xth]]) + '\n'
                     if writelod == 'yes':
                         new_line = new_line.rstrip('\n') + '\t' + str(round(lods2_score_1st_config, 5)) + '\n'
@@ -1587,8 +1599,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
                 flipped = 'yes'
 
                 #print('\n1_A is phased with 2_A, but yes flipped, k2:%s \n' % k2_new)  # marker for debug
-                for xth in range(len(v2[soi + '_PI'])):
-                    new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth], v2['ref'][xth], v2['all-alleles'][xth],
+                for xth in range(len(v2[soi + ':PI'])):
+                    new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth], v2['REF'][xth], v2['all-alleles'][xth],
                                           k2_new, hapb1b_hapb2b[1][xth] + '|' + hapb1a_hapb2a[1][xth]]) + '\n'
                     if writelod == 'yes':
                         new_line = new_line.rstrip('\n') + '\t' + str(round(lods2_score_1st_config, 5)) + '\n'
@@ -1603,8 +1615,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
                 flipped = 'no'
 
                 #print('\n1_A is phased with 2_B, but not flipped, k2:%s \n' % k2_new)  # debug
-                for xth in range(len(v2[soi + '_PI'])):
-                    new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth], v2['ref'][xth], v2['all-alleles'][xth],
+                for xth in range(len(v2[soi + ':PI'])):
+                    new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth], v2['REF'][xth], v2['all-alleles'][xth],
                                           k2_new, hapb1a_hapb2a[1][xth] + '|' + hapb1b_hapb2b[1][xth]]) + '\n'
                     if writelod == 'yes':
                         new_line = new_line.rstrip('\n') + '\t' + str(round(lods2_score_1st_config, 5)) + '\n'
@@ -1618,8 +1630,8 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
                 flipped = ''
 
                 #print('\nno phase extension, no flip (reset), k2 %s\n' % k2)  # marker for debugging
-                for xth in range(len(v2[soi + '_PI'])):
-                    new_line = '\t'.join([v2['contig'][xth], v2['pos'][xth], v2['ref'][xth], v2['all-alleles'][xth],
+                for xth in range(len(v2[soi + ':PI'])):
+                    new_line = '\t'.join([v2['CHROM'][xth], v2['POS'][xth], v2['REF'][xth], v2['all-alleles'][xth],
                                                  k2, hapb1a_hapb2a[1][xth] + '|' + hapb1b_hapb2b[1][xth]]) + '\n'
                     if writelod == 'yes':
                         new_line = new_line.rstrip('\n') + '\t' + str(round(lods2_score_1st_config, 5)) + '\n'
@@ -1632,7 +1644,7 @@ def extend_phase_state(soi, k1, k2, v1, v2, k2_new, flipped,
 
 ''' function that computes several stats from haplotype block before and after phase extension.
 These data can be used to compare the improvements in phase extension, and plotting histogram.
-This can include the size based on genome co-ordinate of the pos in each block.
+This can include the size based on genome co-ordinate of the "POS" in each block.
 This can also include the average number of variants per haplotype before/after phase extension.
 and make a plot out of it - using pyPlot, MatlibPlot or R. '''
 def compute_haplotype_stats(hap_data, soi, prefix) :
@@ -1644,18 +1656,18 @@ def compute_haplotype_stats(hap_data, soi, prefix) :
 
     ''' Step 09 - A : write this haplotype information in a more concise format.
         - in this step we are restructuring the data so proper statistics can be handled properly. '''
-    hap_stats = hap_data.groupby(['contig', soi +'_PI'], sort=False)\
+    hap_stats = hap_data.groupby(['CHROM', soi +':PI'], sort=False)\
         .size().rename('num_Vars_by_PI')\
         .reset_index(level=1).astype(str)\
         .groupby(level=0).agg(','.join).reset_index()
 
     ''' add other required columns '''
-    hap_stats['range_of_PI'] = hap_data.groupby(['contig', soi +'_PI'], sort=False)['pos']\
+    hap_stats['range_of_PI'] = hap_data.groupby(['CHROM', soi +':PI'], sort=False)['POS']\
         .apply(lambda g: g.max() - g.min()).rename('range').reset_index(level=1)\
         .astype(str).groupby(level=0).agg(','.join).reset_index()['range']
 
     hap_stats['total_haplotypes'] = hap_stats\
-        .apply(lambda row: len(row[soi +'_PI'].split(',')), axis=1)
+        .apply(lambda row: len(row[soi +':PI'].split(',')), axis=1)
 
     hap_stats['total_Vars'] = hap_stats \
         .apply(lambda row: sum([int (i) for i in row.num_Vars_by_PI.split(',')]), axis=1)
@@ -1673,17 +1685,16 @@ def compute_haplotype_stats(hap_data, soi, prefix) :
 
     # plots total number of variants per-chromosome
     with open(outputdir + '/' + 'total_vars_'+ soi +'_'+ prefix+'.png', 'wb') as fig_initial:
-        hap_stats.plot(x='contig', y='total_Vars', kind='bar')
+        hap_stats.plot(x='CHROM', y='total_Vars', kind='bar')
         plt.xlabel('chromosomes')
         plt.ylabel('number of variants')
         plt.suptitle('number of variants for each chromosome')
         plt.savefig(fig_initial)
         # plt.show()  # optional: to show the plot to the console
 
-
     # plots total number of haplotypes per-chromosome
-    with open(outputdir + '/' + 'total_haps_'+ soi +'_'+ prefix+'.png', 'wb') as fig_initial:
-        hap_stats.plot(x='contig', y='total_haplotypes', kind='bar')
+    with open(outputdir + '/' + 'total_haps_' + soi + '_' + prefix + '.png', 'wb') as fig_initial:
+        hap_stats.plot(x='CHROM', y='total_haplotypes', kind='bar')
         plt.xlabel('chromosomes')
         plt.ylabel('number of haplotypes')
         plt.suptitle('number of haplotypes for each chromosome')
@@ -1691,20 +1702,36 @@ def compute_haplotype_stats(hap_data, soi, prefix) :
 
 
     # plot histogram of haplotype size (by number of variants) per-chromosome
-        # make different plots for each chromosome, but X-axis is shared.
-    with open(outputdir + '/' + 'hap_size_byVar_'+ soi +'_'+ prefix+'.png', 'wb') as fig_initial:
-        fig, ax = plt.subplots(nrows=len(hap_stats), sharex=True)
-        for i, data in hap_stats.iterrows():
-            # first convert data to list of integers
-            data_i = [int(x) for x in data['num_Vars_by_PI'].split(',')]
-            #print(data)
-            #print(data_i)
-            ax[i].hist(data_i, label=str(data['contig']), alpha=0.5)
-            ax[i].legend()
+    # make different plots for each chromosome, but X-axis is shared.
+    with open(outputdir + '/' + 'hap_size_byVar_' + soi + '_' + prefix + '.png', 'wb') as fig_initial:
 
-        plt.xlabel('size of the haplotype (number of variants)')
-        plt.ylabel('frequency of the haplotypes')
-        plt.suptitle('histogram of size of the haplotype (number of variants) \n'
+        ## making histogram plot.
+        # raising if-else when number of chromosome is 1 vs. more than 1. ** This can be optimize in the future.
+        fig, ax = plt.subplots(nrows=len(hap_stats), sharex=True)
+
+        # when we have only one chromosome
+        if len(hap_stats) == 1:
+            # fig, ax = plt.subplots(nrows=len(hap_stats), sharex=True, squeeze=False)
+            data_i = hap_stats['num_Vars_by_PI'].str.split(',')
+            data_i = pd.Series([int(x) for x in data_i[0]])
+            data_i.plot(kind='hist', label=str(hap_stats['CHROM']), alpha=0.5)
+            plt.ylabel('frequency of the haplotypes')
+
+        elif len(hap_stats) > 1:
+            for i, data in hap_stats.iterrows():
+                # first convert data to list of integers
+                data_i = [int(x) for x in data['num_Vars_by_PI'].split(',')]
+                # print(data)
+                # print(data_i)
+                ax[i].hist(data_i, label=str(data['CHROM']), alpha=0.5)
+                ax[i].legend()
+
+            fig.text(.05, .5, 'frequency of the haplotypes', ha='center', va='center', rotation='vertical')
+
+        # add a common x-label
+        plt.xlabel('size of the haplotype (by number of variants)')
+        # plt.ylabel('frequency of the haplotypes')
+        plt.suptitle(prefix + ' histogram of size of the haplotype (by number of variants) \n'
                      'for each chromosome')
         plt.savefig(fig_initial)
 
@@ -1713,18 +1740,36 @@ def compute_haplotype_stats(hap_data, soi, prefix) :
     # plot histogram of haplotype size (by genomic ranges of haplotype) per-chromosome
     # make different plots for each chromosome, but X-axis is shared.
     with open(outputdir + '/' + 'hap_size_byGenomicRange_' + soi + '_' + prefix + '.png', 'wb') as fig_initial:
-        fig, ax = plt.subplots(nrows=len(hap_stats), sharex=True)
-        for i, data in hap_stats.iterrows():
-            # first convert data to list of integers
-            data_i = [int(x) for x in data['range_of_PI'].split(',')]
-            # print(data)
-            # print(data_i)
-            ax[i].hist(data_i, label=str(data['contig']), alpha=0.5)
-            ax[i].legend()
 
-        plt.xlabel('size of the haplotype (Genomic Distance)')
-        plt.ylabel('frequency of the haplotypes')
-        plt.suptitle('histogram of size of the haplotype (number of variants)\n'
+        ## making histogram plot.
+        # raising if-else when number of chromosome is 1 vs. more than 1. ** This can be optimize in the future.
+        fig, ax = plt.subplots(nrows=len(hap_stats), sharex=True)
+
+        # when we have only one chromosome
+        if len(hap_stats) == 1:
+            # fig, ax = plt.subplots(nrows=len(hap_stats), sharex=True, squeeze=False)
+            data_i = hap_stats['range_of_PI'].str.split(',')
+            data_i = pd.Series([int(x) for x in data_i[0]])
+            data_i.plot(kind='hist', label=str(hap_stats['CHROM']), alpha=0.5)
+            plt.ylabel('frequency of the haplotypes')
+
+        # when the dataframe has more than one chromosome
+        elif len(hap_stats) > 1:
+            for i, data in hap_stats.iterrows():
+                # first convert data to list of integers
+                data_i = [int(x) for x in data['range_of_PI'].split(',')]
+                # print(data)
+                # print(data_i)
+                ax[i].hist(data_i, label=str(data['CHROM']), alpha=0.5)
+                ax[i].legend()
+
+            # adding y-label separately if there are multiple chromosomes
+            fig.text(.05, .5, 'frequency of the haplotypes', ha='center', va='center', rotation='vertical')
+
+        # writing a common x-label
+        plt.xlabel('size of the haplotype (by Genomic Distance)')
+        #plt.ylabel('frequency of the haplotypes')
+        plt.suptitle(prefix + ' histogram of size of the haplotype (by Genomic Distance)\n'
                      'for each chromosome')
         plt.savefig(fig_initial)
 
@@ -1767,16 +1812,16 @@ def accumulate(data):
 def find_samples(samples):
     # the below method preserves the order of samples.
     seen = set()
-    sample_list = [x.split('_')[0] for x in samples if '_' in x]
+    sample_list = [x.split(':')[0] for x in samples if ':' in x]
     sample_list = [x for x in sample_list if not (x in seen or seen.add(x))]
-    sample_list = [((x + '_PI'), (x + '_PG_al')) for x in sample_list]
+    sample_list = [((x + ':PI'), (x + ':PG_al')) for x in sample_list]
 
 
     return sample_list
 
     # ** Note: this returns data as:
-    # sample_list = [('ms01e_PI', 'ms01e_PG_al'), ('ms02g_PI', 'ms02g_PG_al'),
-               #('ms03g_PI', 'ms03g_PG_al'), ('ms04h_PI', 'ms04h_PG_al')]
+    # sample_list = [('ms01e:PI', 'ms01e:PG_al'), ('ms02g:PI', 'ms02g:PG_al'),
+               #('ms03g:PI', 'ms03g:PG_al'), ('ms04h:PI', 'ms04h:PG_al')]
 
 
 ''' to monitor memory '''

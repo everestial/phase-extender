@@ -1,4 +1,4 @@
-contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al
+CHROM	POS	REF	all-alleles	ms02g:PI	ms02g:PG_al
 1	10181478	A	A,T	1	A|T
 1	10181479	A	A,T	1	A|T
 1	10181587	T	T,G	1	G|T

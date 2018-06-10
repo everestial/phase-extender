@@ -1,4 +1,4 @@
-contig	ms02g_PI	num_Vars_by_PI	range_of_PI	total_haplotypes	total_Vars
+CHROM	ms02g:PI	num_Vars_by_PI	range_of_PI	total_haplotypes	total_Vars
 1	1,2	60,6	2820,81	2	66
 2	9,8,10,7,11	94,78,10,69,25	89910,1102167,600,1621365,636	5	276
 3	5,3,4,6	6,12,14,17	908,394,759,115656	4	49
