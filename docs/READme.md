@@ -1,17 +1,17 @@
-This tutorial provides hands on for preparing required `input files` and running `phase-Extender`. **phase-Extender** is run with three different example sets and test files for the runs are provided in the appropriate links.
+This tutorial provides a hands on for preparing required `input files` and running `phase-Extender`. **phase-Extender** has been provided with three example sets highlighting possible use cases.
 
 ## Part-A: Run phase extender.
 ### Step 01: Prepare input files.
 
-  **A) Convert VCF to haplotype file:**
+  **A) Convert VCF to a haplotype file:**
 ```
 python3 vcf_to_table-v3.py --mode VcfToHap --PI PI --PG PG --vcf RBphased_file.vcf --out haploype_file.txt
 ```
       
   **Note:**
-  - If RBphase information is represented by FORMAT fields other than "PI" and "PG", then it can be replaced accordingly.
-  - `"--unphased yes"` can be added to `"vcf_to_table-v3.py"` to include the unphased genotypes. This parameter will not affect the phase extension, and is only included to keep the whole data intact.
-  - run command `python3 vcf_to_table-v3.py --help` for more details on VCF and haplotype reference panel to table conversion.
+  - If RBphase information is represented by FORMAT fields other than "PI" and "PG", then it will have to be placed accordingly.
+  - `"--unphased yes"` switch can be added to `"vcf_to_table-v3.py"` to include the unphased genotypes. This parameter will not affect the phase extension, and is only included to keep the entire data-set in the conversion.
+  - run command `python3 vcf_to_table-v3.py --help` for a detailed help section or manual to convert into the requisite tabular format from a VCF or Haplotype panel.
   
 <br>
 
@@ -23,7 +23,7 @@ python3 vcf_to_table-v3.py --mode RefPanelToHap --PI CHROM --PG GT --vcf RefPane
 <br>
 
 ### Step 02: Run phase-Extender.
-Parameters that are not called are set at default value.
+Parameters that are not called are retained at default values. 
 
   - **Call for help -**
 ```
@@ -46,7 +46,7 @@ python3 phase_extender_v1-final.py --input input_haplotype_file.txt --SOI ms02g 
   - **Example test case 02 (multiple cases) -**\
 Use data from [example 02](https://github.com/everestial/phase-Extender/tree/master/example02)
 ```
-# use 2 processes
+# There are two steps to run case 02. 
 # use 25 heterozygote SNPs (from each block) for ...
   # ... preparing transition matrix between two consecutive blocks
 # set lods2 cutoff threshold at 10
@@ -54,7 +54,6 @@ Use data from [example 02](https://github.com/everestial/phase-Extender/tree/mas
 python3 phase_extender_v1-final.py --nt 2 --input haplotype_file_test02.txt --SOI ms02g --numHets 25 --culLH maxPd --hapStats yes --lods 10
 
 # Output is stored in directory `ms02g_extended\`.
-
 
 # to assign output to a different directory
 python3 phase_extender_v1-final.py --input haplotype_file_test02.txt --SOI ms02g --output my_test
@@ -119,7 +118,7 @@ contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al	log2odds
 <br>
 
 **What does this tell us?**
-  - Our cutoff threshold was `10` and the computed lods between the two blocks is `-73.3033`.
+  - The lod cutoff parametrized in the command is an absolute value. Our cutoff threshold was `10` and the computed lods between the two blocks is `-73.3033`.
   - Since, the **|computed lods|** > **lods threshold** phase-Extender proceeds with phase extension between blocks with PI (6 and 4).
   - Since, the **compute lods** is a negative value, the phase is exteded in alternate configuration.
   - So, if **|computed lods|** < **lods threshold** the phase state won't extend between two consecutive blocks.
@@ -128,7 +127,7 @@ contig	pos	ref	all-alleles	ms02g_PI	ms02g_PG_al	log2odds
 <br>
 
 ### **2. Interpreting histogram plots (from output of test case 03) -**\
-So, when phase-Extender runs it will join two consecutive haplotype and will increase the size of the haplotype by number of variants within each haplotype, and also by length of the haplotype. Inversly, the total number of haplotype will decrease. This change can be compared by observing changes in the shape of the histogram (size by number of the haplotype) before vs. after phase extension.
+So, when phase-Extender runs it will join two consecutive haplotype and will increase the size of the haplotype block by number of variants within each haplotype, and also by length of the haplotype. Inversly, the total number of haplotype will decrease. This change can be compared by observing changes in the shape of the histogram (size by number of the haplotype) before vs. after phase extension.
 
 **Histogram of the haplotype size distribution before phase extension (contig 2 & 3)**
 ![beforephaseextension!](https://github.com/everestial/phase-Extender/blob/master/example03/hap_size_byVar_ms02g_initial.png)
@@ -143,9 +142,9 @@ So, when phase-Extender runs it will join two consecutive haplotype and will inc
 <br>
 
 # Recursive application of haplotype phase extension  
-  - ***phase-Extender maynot be able to prepare a full length phased haplotype in one run.*** This is not the limitation but rather a intended feature in this tool. The reason is to provide flexibility and allow the user to control phase extension. A controllable haplotype extension is largely required for phase extension in emerging research model owing to smaller genotype samples, absence of reference panel and higher heterozygosity in the genome.\
-  - The main idea is to first run **phase-Extender** with higher `log2Odds cut off` for several samples. Then merge the output of each sample to run another round of **phase extension** with concessive (lower) `log2Odds cut off`. When applied recursively we reduce the number of haplotypes and increase the length of haplotypes in each run.
-  - To achieve full genomewide haplotype phasing there should be enough haplotype blocks (from other samples) bridging the haplotype breakpoint in the sample of interest.   
+  - ***phase-Extender may not be able to prepare a full length phased haplotype in one run.*** This is not the limitation but rather an intended feature in this tool. The reason is to provide flexibility and allow the user to control phase extension. A controllable haplotype extension is largely required for phase extension in emerging research models owing to few genotype samples, absence of reference panel and heterozygosity in the genome.\
+  - The main idea is to first run **phase-Extender** with higher `log2Odds cut off` for several samples. Then merge the output of each sample to run another round of **phase extension** with lower `log2Odds cut off`. When applied recursively we reduce the number of haplotypes and increase the length of haplotypes in each run.
+  - To achieve genome wide haplotype phasing there should be enough haplotype blocks (from other samples) bridging the haplotype breakpoint in the sample of interest.   
   - So, controllable haplotype extension is a novel feature intended in **phase-Extender**. A full length recursive phase extension is illustrated in this link [phase Extender on recursive mode](some website??) using the bash script. **(coming soon !)**
   
   
