@@ -13,6 +13,21 @@ Giri, B. K., Remington D. L. PhaseIT - A haplotype phasing too for heterogenous 
 Bishwa K. Giri (bkgiri@uncg.edu; kirannbishwa01@gmail.com) \
 Support @ https://groups.google.com/d/forum/phase-extender
 
+**Table of Contents**
+- [phASE-Extender](#phase-extender)
+  - [Citation](#citation)
+  - [AUTHOR/SUPPORT](#authorsupport)
+  - [Intro to ReadBackPhasing](#intro-to-readbackphasing)
+- [BACKGROUND](#background)
+  - [Summary](#summary)
+  - [Algorithm](#algorithm)
+  - [Benefits of using phaseExtender](#benefits-of-using-phaseextender)
+  - [!#f03c15 Data Requirements](#data-requirements)
+- [Tutorial](#tutorial)
+    - [Prerequisites](#prerequisites)
+    - [Installation and setup](#installation-and-setup)
+  - [Usage:](#usage)
+
 ## Intro to ReadBackPhasing
 Two heterozygote genotypes in a diploid organism genome are called to be readback phased if they are supported by aligned reads sequence. Depending upon the size and type (single end vs. paried end) of read sequence library, type of read sequence (DNAseq vs. RNAseq) readbackphased haplotype can range from the size of 2 genotypes to multiple genotypes.
 
@@ -73,7 +88,7 @@ For the **mcve** regarding the algorithm see this issue on [**stackoverflow**](h
 - Ability to adjust LOD cutoff along with above discussed customization provides a means to recursively improve haplotype phasing.
 
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Data Requirements
+## Data Requirements
 
 **phASE-Extender** can be used with the multi-sample vcf files produced by GATK pipeline or other tools that generate readbackphased haplotype blocks in the output VCF. A haplotype file is created using the RBphased VCF and then piped into **phase-Extender**. See, this example for data structure of input haplotype file [sample input haplotype file01](https://github.com/everestial/phase-Extender/blob/master/example01/input_haplotype_small.txt) - a tab separated text file with `PI` and `PG_al` value for each samples.
 
@@ -84,41 +99,195 @@ VCF from `phaser` consists of `Phased Genotype i.e PG` and `Phase Block Index i.
 
 # Tutorial
 
-## Setup
-**phase-Extender** is written in python3 interpreter. So, it can be directly run using the **".py"** file, given all the required modules (dependencies) are installed.
 
-**Runs on `Python 3.x` and has the following dependencies:**
+### Prerequisites
 
-  - [pandas](http://pandas.pydata.org/)
-  - [argparse](https://docs.python.org/3/library/argparse.html)
-  - [collections](https://docs.python.org/3/library/collections.html?highlight=collections#module-collections)
-  - [csv](https://docs.python.org/3/library/csv.html?highlight=csv)
-  - [decimal](https://docs.python.org/3/library/decimal.html?highlight=decimal#module-decimal)
-  - [functools](https://docs.python.org/3/library/functools.html?highlight=functools)
-  - [itertools](https://docs.python.org/3/library/itertools.html?highlight=itertools)
-  - [io](https://docs.python.org/3/library/io.html?highlight=io#module-io)
-  - [multiprocessing](https://docs.python.org/3/library/multiprocessing.html?highlight=multiprocessing#)
-  - [numpy](http://www.numpy.org/), (http://cs231n.github.io/python-numpy-tutorial/)
-  - [resource](https://docs.python.org/3/library/resource.html?highlight=resource#module-resource)
-  - [time](https://docs.python.org/3/library/time.html?highlight=time#module-time)
-  - [matplotlib](https://matplotlib.org/2.2.2/index.html)
-  
-<br>
-  
-## Installation
-```
-pip3 install -r requirements.txt
-#Or
-sudo pip3 install -r requirements.txt
-```
+**phase-Extender** is written in python3, so you need to have python3 installed on your system to run this code locally. If you don't have python installed then, you can install from [here](https://www.python.org/downloads/). For linux; you can get latest python3 by:
 
-**If there is issue with installation while using `requirements.txt` install each dependencies individually.**  
-e.g: 
-```
-sudo python3 -m pip install pandas
+` sudo apt-get install python3`
+
+
+### Installation  and setup
+
+1. Clone this repo.
 ``` 
-  
+git clone https://github.com/everestial/phase-Extender
+cd phase-Extender
+```
+
+2. Make virtual env for python and install requirements.
+```
+python3 -m venv myenv
+source myenv/bin/activate   # for linux
+myenv\Scripts\activate      # for windows
+pip install -r requirements.txt
+```
+
+OR, you can install latest versions individually by:
+
+```
+pip install pandas numpy matplotlib
+
+```
+
+
+3. Run help on phase extender 
+```
+   python3 phase-Extender.py -h  
+```   
+<pre>
+Checking and importing required modules: 
+
+#######################################################################
+        Welcome to phase-extender version 1       
+  Author: kiranNbishwa (bkgiri@uncg.edu, kirannbishwa01@gmail.com) 
+#######################################################################
+
+Loading the argument variables ....
+usage: phase-Extender.py [-h] [--nt NT] --input INPUT --SOI SOI
+                         [--output OUTPUT] [--refHap REFHAP]
+                         [--useSample USESAMPLE] [--bed BED] [--snpTh SNPTH]
+                         [--numHets NUMHETS] [--lods LODS] [--culLH CULLH]
+                         [--writeLOD WRITELOD] [--hapStats HAPSTATS]
+                         [--addMissingSites ADDMISSINGSITES]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --nt NT               number of process to run -> the maximum number of
+                        processes that can be run at once is the number of
+                        different chromosomes (contigs) in the input haplotype
+                        file.
+  --input INPUT         name of the input haplotype file -> This haplotype
+                        file should contain unique index represented by 'PI'
+                        and phased genotype represented by 'PG_al' for several
+                        samples.
+  --SOI SOI             sample of interest -> Name of the sample intended for
+                        haplotype extension.
+  --output OUTPUT       Name of the output directory. default: 'SOI_extended'
+  --refHap REFHAP       reference haplotype panel -> This file should also
+                        contain 'PI' and 'PG_al' values for each sample in
+                        that haplotype reference panel.default: empty
+  --useSample USESAMPLE
+                        list of samples -> Use phase state information only
+                        from these samples while running. This is intended to
+                        provide control over phase-extension by allowing
+                        select samples from the pool of samples (refHap and/or
+                        input). This is useful for comparing the results when
+                        different individuals, populations are used in phase
+                        extension process.Options:
+                        'all','refHap','input','comma separated name of
+                        samples'. default: 'all' - i.e all the samples in
+                        (refHap + input) will be used, if refHap is given else
+                        all samples only from input file is used.
+  --bed BED             bed file -> Process the haplotype extension only in
+                        this bed regions. This is useful to limit haplotype
+                        extension only within certain regions, like - within
+                        genes, exons, introns, QTL, etc. default: empty
+  --snpTh SNPTH         snp threshold -> Minimum number of SNPs required in
+                        both haplotype blocks before starting phase extension.
+                        Option: an integer value. Default: snpTh = 3
+  --numHets NUMHETS     number of heterozygote SNPs -> Maximum number of
+                        heterozygote SNPs used in consecutive haplotype blocks
+                        for computing likelyhood of the phase states. Option:
+                        an integer value. Default: numHets = 40
+  --lods LODS           log2 of Odds cut off -> Cutoff threshold to assign the
+                        phase states between consecutive haplotype blocks.
+                        Option: an integer value Default: 5 for parallel
+                        configuration (i.e 2^5 = 32 times more likely).
+  --culLH CULLH         Cumulative likelhood estimates -> The likelhoods for
+                        two possible configuration can either be max-sum vs.
+                        max-product. Default: maxPd i.e max-product. Options:
+                        'maxPd' or 'maxSum'.
+  --writeLOD WRITELOD   write log2 of Odds to the output file-> writes the
+                        calculated LODs between two consecutive haplotype
+                        blocks in the output file. Option: 'yes', 'no'.
+                        Default: no. **Note: the 'lods-score' are printed
+                        regardless if the consecutive blocks are joined or
+                        not.
+  --hapStats HAPSTATS   Computes the descriptive statistics and plots
+                        histogram of the haplotype for input and extended
+                        haplotype. Default: 'no'.Option: 'yes', 'no' .
+  --addMissingSites ADDMISSINGSITES
+                        write the lines that have data missing for SOI on the
+                        output file. Option: yes, no
+   </pre>
+
 <br>
+
+
+## Usage:
+
+1. First example:
+
+`
+python3 phase-Extender.py --input example01/input_haplotype_file.txt --SOI ms02g --lods 10`
+<pre>
+Checking and importing required modules: 
+
+#######################################################################
+        Welcome to phase-extender version 1       
+  Author: kiranNbishwa (bkgiri@uncg.edu, kirannbishwa01@gmail.com) 
+#######################################################################
+
+Loading the argument variables ....
+Assigning values to the global variables ....
+  - sample of interest: "ms02g" 
+  - using "1" processes 
+  - using haplotype file "example01/input_haplotype_file.txt" 
+  - using log2 odds cut off of "10.0" 
+  - each consecutive haplotype block should have minimum of "3" SNPs 
+  - using maximum of "40" heterozygote sites in each consecutive blocks to compute transition probabilities
+  - using "max product" to estimate the cumulative maximum likelyhood of each haplotype configuration between two consecutive blocks 
+  - no bed file is given.
+  - no reference haplotype panel is provided 
+  - statistics of the haplotype before and after extension will not be prepared for the sample of interest i.e "ms02g".     Only extendent haplotype block will be prepared.
+  - LOD (log 2 of odds) for consecutive block will not be written to the output file 
+
+
+# Reading the input haplotype file "example01/input_haplotype_file.txt" 
+  - Lines that have data missing for sample "ms02g" is written in the file "ms02g_extended/missingdata_ms02g.txt" 
+
+# Genomic bed file is not provided ... 
+  - So, phase extension will run throughout the genome.
+
+# Haplotype reference panel is not provided ... 
+  So, phase extension will run using the samples available in the input haplotype file. 
+
+# Filtered the lines that have data missing for sample "ms02g"; check the file "ms02g_extended/missingdata_ms02g.txt" 
+  - Loaded read-backphased variants onto the memory
+
+# Haplotype reference panel is not provided....
+  - Only using the samples in the input ("example01/input_haplotype_file.txt") data.
+
+# No bed file is given ... 
+  - So, grouping the haplotype file only by chromosome (contig)
+
+# Writing initial haplotype for sample "ms02g" in the file "initial_haplotype_ms02g.txt" 
+  - Proceeding to phase-extension without preparing descriptive statistics of initial haplotype state.
+
+# Starting multiprocessing using "1" processes 
+
+
+## Extending haplotype blocks in chromosome (contig) 2
+  - Grouping the dataframe using unique "PI - phased index" values. 
+  - Starting MarkovChains for contig 2
+  - Phase-extension completed for contig "2" in 0.017184734344482422 seconds
+  - Worker maximum memory usage: 58.57 (mb)
+
+
+Completed haplotype extension for all the chromosomes.time elapsed: '0.11295127868652344' 
+Global maximum memory usage: 79.88 (mb)
+Merging dataframes together .....
+
+Extended haplotype data for sample "ms02g" is written in the file "extended_haplotype_ms02g.txt". 
+Skipping the preparation of descriptive statistics of extended haplotype.
+
+Run is complete for all the chromosomes (contigs)
+
+writing singletons and missing sites to extended haplotype
+End :)
+</pre>
+
 
 ## Usage and Inputs
   - Requires a multisample readbackphased `haplotype file` as input and returns a single sample extended haplotype file. Other results files containing statistics on the initial vs. extended haplotype are also produced. 
@@ -244,7 +413,7 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
 <br>
 <br>
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)Some Q/A on phase-extender: 
+## Some Q/A on phase-extender: 
 
   **_1) What kind of algorithm does phase-extender use ?_**  
   phase-extender uses first-order-transition probabilities from each level of genotypes from former haplotype block to each level of genotypes to later haplotype block. This version (v1) uses **forward-1stOrder-markov chains** and **backward-1stOrder-markov chains** transition probabilities. Future versions will follow improvements by adding markov-chains of higher order.    
@@ -301,7 +470,7 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
 <br>
 <br>
    
-   ## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)Acknowledgement
+   ## Acknowledgement
    I have not been very fortunate to surround myself or at least get face to face help from savvy computer programmers. But, my heart is very thankful to people behind the web who have made me capable of working this problem out. **Thanks to many people on biostars, stackoverflow, seqanswer and google web searches who provided feedback on small question that were the part of `phase-Extender` project.**    
    
    Should anyone be interested in futher improving this project via improvments on alrorithm and programming, I would be more than happy to.  
@@ -309,9 +478,9 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
 <br>
 <br>
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)Expected capabilities in the future (coming soon)
-### Phase SNPs that are not assigned to ReadBackPhased blocks
-### Genotype imputation
-### Trio based phasing, Family based phasing
-### Higher order markov chain capabilities
-### Multiprocessing within chromosome
+## Expected capabilities in the future (coming soon)
+- Phase SNPs that are not assigned to ReadBackPhased blocks
+- Genotype imputation
+- Trio based phasing, Family based phasing
+- Higher order markov chain capabilities
+- Multiprocessing within chromosome

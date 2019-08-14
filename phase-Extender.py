@@ -7,24 +7,23 @@ print("\nChecking and importing required modules: ")
 import argparse
 import collections
 import csv
-from decimal import Decimal
-from functools import reduce
-import itertools
-from itertools import islice
-from itertools import product
-from io import StringIO
-
-from multiprocessing import Pool
-import numpy as np
-import os
-import pandas as pd
-import resource
-import time
 import io
+import time
+import itertools
+
+import os
+import resource
 import shutil
 
-# for plotting
+from decimal import Decimal
+from functools import reduce
+from io import StringIO
+from itertools import islice, product
+from multiprocessing import Pool
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 
 def main():
