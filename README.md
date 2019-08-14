@@ -13,6 +13,7 @@ Giri, B. K., Remington D. L. PhaseIT - A haplotype phasing too for heterogenous 
 Bishwa K. Giri (bkgiri@uncg.edu; kirannbishwa01@gmail.com) \
 Support @ https://groups.google.com/d/forum/phase-extender
 
+**Table of Contents**
 - [phASE-Extender](#phase-extender)
   - [Citation](#citation)
   - [AUTHOR/SUPPORT](#authorsupport)
@@ -21,7 +22,7 @@ Support @ https://groups.google.com/d/forum/phase-extender
   - [Summary](#summary)
   - [Algorithm](#algorithm)
   - [Benefits of using phaseExtender](#benefits-of-using-phaseextender)
-  - [!#f03c15 Data Requirements](#f03c15-data-requirements)
+  - [!#f03c15 Data Requirements](#data-requirements)
 - [Tutorial](#tutorial)
     - [Prerequisites](#prerequisites)
     - [Installation and setup](#installation-and-setup)
@@ -87,7 +88,7 @@ For the **mcve** regarding the algorithm see this issue on [**stackoverflow**](h
 - Ability to adjust LOD cutoff along with above discussed customization provides a means to recursively improve haplotype phasing.
 
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+) Data Requirements
+## Data Requirements
 
 **phASE-Extender** can be used with the multi-sample vcf files produced by GATK pipeline or other tools that generate readbackphased haplotype blocks in the output VCF. A haplotype file is created using the RBphased VCF and then piped into **phase-Extender**. See, this example for data structure of input haplotype file [sample input haplotype file01](https://github.com/everestial/phase-Extender/blob/master/example01/input_haplotype_small.txt) - a tab separated text file with `PI` and `PG_al` value for each samples.
 
@@ -412,7 +413,7 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
 <br>
 <br>
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)Some Q/A on phase-extender: 
+## Some Q/A on phase-extender: 
 
   **_1) What kind of algorithm does phase-extender use ?_**  
   phase-extender uses first-order-transition probabilities from each level of genotypes from former haplotype block to each level of genotypes to later haplotype block. This version (v1) uses **forward-1stOrder-markov chains** and **backward-1stOrder-markov chains** transition probabilities. Future versions will follow improvements by adding markov-chains of higher order.    
@@ -469,7 +470,7 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
 <br>
 <br>
    
-   ## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)Acknowledgement
+   ## Acknowledgement
    I have not been very fortunate to surround myself or at least get face to face help from savvy computer programmers. But, my heart is very thankful to people behind the web who have made me capable of working this problem out. **Thanks to many people on biostars, stackoverflow, seqanswer and google web searches who provided feedback on small question that were the part of `phase-Extender` project.**    
    
    Should anyone be interested in futher improving this project via improvments on alrorithm and programming, I would be more than happy to.  
@@ -477,9 +478,9 @@ Histogram of the distribution of the haplotype size (by genomic range of the hap
 <br>
 <br>
 
-## ![#f03c15](https://placehold.it/15/f03c15/000000?text=+)Expected capabilities in the future (coming soon)
-### Phase SNPs that are not assigned to ReadBackPhased blocks
-### Genotype imputation
-### Trio based phasing, Family based phasing
-### Higher order markov chain capabilities
-### Multiprocessing within chromosome
+## Expected capabilities in the future (coming soon)
+- Phase SNPs that are not assigned to ReadBackPhased blocks
+- Genotype imputation
+- Trio based phasing, Family based phasing
+- Higher order markov chain capabilities
+- Multiprocessing within chromosome
