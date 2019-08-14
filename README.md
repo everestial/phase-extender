@@ -13,6 +13,20 @@ Giri, B. K., Remington D. L. PhaseIT - A haplotype phasing too for heterogenous 
 Bishwa K. Giri (bkgiri@uncg.edu; kirannbishwa01@gmail.com) \
 Support @ https://groups.google.com/d/forum/phase-extender
 
+- [phASE-Extender](#phase-extender)
+  - [Citation](#citation)
+  - [AUTHOR/SUPPORT](#authorsupport)
+  - [Intro to ReadBackPhasing](#intro-to-readbackphasing)
+- [BACKGROUND](#background)
+  - [Summary](#summary)
+  - [Algorithm](#algorithm)
+  - [Benefits of using phaseExtender](#benefits-of-using-phaseextender)
+  - [!#f03c15 Data Requirements](#f03c15-data-requirements)
+- [Tutorial](#tutorial)
+    - [Prerequisites](#prerequisites)
+    - [Installation and setup](#installation-and-setup)
+  - [Usage:](#usage)
+
 ## Intro to ReadBackPhasing
 Two heterozygote genotypes in a diploid organism genome are called to be readback phased if they are supported by aligned reads sequence. Depending upon the size and type (single end vs. paried end) of read sequence library, type of read sequence (DNAseq vs. RNAseq) readbackphased haplotype can range from the size of 2 genotypes to multiple genotypes.
 
