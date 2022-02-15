@@ -1,0 +1,1 @@
+CHROM	POS	REF	all-alleles	ms01e:PI	ms01e:PG_al	ms02g:PI	ms02g:PG_al	ms03g:PI	ms03g:PG_al	ms04h:PI	ms04h:PG_al	ms05h:PI	ms05h:PG_al	ms06h:PI	ms06h:PG_al
