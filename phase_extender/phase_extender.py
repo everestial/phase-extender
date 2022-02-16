@@ -3,10 +3,10 @@ import sys
 import time
 import argparse
 
-from phaser import phase_converter
-from arg_builders import get_args
-from val_extractor import args_to_val
-from utils import print_authorship
+from phase_extender.phaser import phase_converter
+from phase_extender.arg_builders import get_args
+from phase_extender.val_extractor import args_to_val
+from phase_extender.utils import print_authorship
 
 
 def main():

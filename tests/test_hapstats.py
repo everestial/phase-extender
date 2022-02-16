@@ -3,7 +3,7 @@ import shutil
 import filecmp
 import tempfile
 import pandas as pd
-from hapstats import compute_haplotype_stats
+from phase_extender.hapstats import compute_haplotype_stats
 from tutils import replace_mkdir, is_same
 
 

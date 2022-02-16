@@ -89,17 +89,19 @@ def args_to_val(args):
         print(
             "  - LOD (log 2 of odds) for consecutive block will be written to the output file "
         )
-    elif args.writeLOD != "yes":
+    else:
         writelod = "no"
         print(
             "  - LOD (log 2 of odds) for consecutive block will not be written to the output file "
         )
 
+
+
     # if missing sites are to be added to phase extended file.
     # this will output a new file instead of writing on top of phase extended file.
     if args.addMissingSites == "yes":
         addmissingsites = "yes"
-    elif args.addMissingSites != "yes":
+    else:
         addmissingsites = "no"
 
     return (

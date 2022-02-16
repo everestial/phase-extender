@@ -4,7 +4,7 @@ import shutil
 import tempfile
 
 
-from phaser import phase_converter
+from phase_extender.phaser import phase_converter
 from tutils import replace_mkdir, is_same
 
 # initialize the default parameters

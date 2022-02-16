@@ -14,9 +14,9 @@ from multiprocessing import Pool
 import numpy as np
 import pandas as pd
 
-from hapstats import compute_haplotype_stats
-from compute_score import compute_maxLh_score, extend_phase_state
-from utils import accumulate, current_mem_usage
+from phase_extender.hapstats import compute_haplotype_stats
+from phase_extender.compute_score import compute_maxLh_score, extend_phase_state
+from phase_extender.utils import accumulate, current_mem_usage
 
 
 def phase_converter(
