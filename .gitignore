@@ -107,3 +107,4 @@ phasenv/
 
 .pytest_cache
 tempdir/
+ms02g_extended/

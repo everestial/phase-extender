@@ -14,7 +14,18 @@ def compute_haplotype_stats(hap_data, soi, prefix, outputdir):
     stats_df_fname = prefix + "_haplotype_stats_" + soi + ".txt"
     stats_filepath = Path(outputdir, stats_df_fname)
     hap_stats = compute_stats_df(hap_data, soi, prefix, stats_filepath)
+    plot_all_data(hap_stats, soi, prefix, outputdir)
     # for plot total number of variants per-chromosome
+
+def plot_all_data(hap_data_file, soi='', prefix='noprefix', outputdir = None):
+    if outputdir is None:
+        outputdir = Path(Path.cwd())
+    if isinstance(hap_data_file, pd.DataFrame):
+        hap_stats = hap_data_file
+    else:
+        print("computing stats from file")
+        hap_stats = pd.read_csv(hap_data_file, sep= '\t')
+
     var_path = Path(outputdir, "total_vars_" + soi + "_" + prefix + ".png")
     xlabel = "chromosomes"
     ylabel = "number of variants"
@@ -45,7 +56,7 @@ def compute_haplotype_stats(hap_data, soi, prefix, outputdir):
     # plot histogram of haplotype size (by number of variants) per-chromosome
     # make different plots for each chromosome, but X-axis is shared.
     varsize_path = Path(
-        outputdir + "/" + "hap_size_byVar_" + soi + "_" + prefix + ".png"
+        outputdir ,  "hap_size_byVar_" + soi + "_" + prefix + ".png"
     )
     genomic_path = Path(
         outputdir, "hap_size_byGenomicRange_" + soi + "_" + prefix + ".png"
