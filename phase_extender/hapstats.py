@@ -9,22 +9,25 @@ This can also include the average number of variants per haplotype before/after 
 and make a plot out of it - using pyPlot, MatlibPlot or R. """
 
 
-def compute_haplotype_stats(hap_data, soi, prefix, outputdir):
+def compute_haplotype_stats(hap_data, soi, prefix, outputdir, show_plot=False):
     # compute stats from given hap_data
     stats_df_fname = prefix + "_haplotype_stats_" + soi + ".txt"
     stats_filepath = Path(outputdir, stats_df_fname)
     hap_stats = compute_stats_df(hap_data, soi, prefix, stats_filepath)
-    plot_all_data(hap_stats, soi, prefix, outputdir)
+    plot_all_data(hap_stats, soi, prefix, outputdir, show_plot=False)
     # for plot total number of variants per-chromosome
 
-def plot_all_data(hap_data_file, soi='', prefix='noprefix', outputdir = None):
+
+def plot_all_data(
+    hap_data_file, soi="", prefix="noprefix", outputdir=None, show_plot=False
+):
     if outputdir is None:
         outputdir = Path(Path.cwd())
     if isinstance(hap_data_file, pd.DataFrame):
         hap_stats = hap_data_file
     else:
         print("computing stats from file")
-        hap_stats = pd.read_csv(hap_data_file, sep= '\t')
+        hap_stats = pd.read_csv(hap_data_file, sep="\t")
 
     var_path = Path(outputdir, "total_vars_" + soi + "_" + prefix + ".png")
     xlabel = "chromosomes"
@@ -38,6 +41,7 @@ def plot_all_data(hap_data_file, soi='', prefix='noprefix', outputdir = None):
         xlabel=xlabel,
         ylabel=ylabel,
         suptitle=suptitle,
+        show_plot=show_plot,
     )
     # plots total number of haplotypes per-chromosome
     hap_path = Path(outputdir, "total_haps_" + soi + "_" + prefix + ".png")
@@ -51,31 +55,46 @@ def plot_all_data(hap_data_file, soi='', prefix='noprefix', outputdir = None):
         xlabel=xlabel,
         ylabel=ylabel,
         suptitle=suptitle,
+        show_plot=show_plot,
     )
 
     # plot histogram of haplotype size (by number of variants) per-chromosome
     # make different plots for each chromosome, but X-axis is shared.
-    varsize_path = Path(
-        outputdir ,  "hap_size_byVar_" + soi + "_" + prefix + ".png"
-    )
+    varsize_path = Path(outputdir, "hap_size_byVar_" + soi + "_" + prefix + ".png")
     genomic_path = Path(
         outputdir, "hap_size_byGenomicRange_" + soi + "_" + prefix + ".png"
     )
 
     if len(hap_stats) == 1:
         plot_hist_one_chr(
-            hap_stats, hist_by="num_Vars_by_PI", filepath=varsize_path, prefix=prefix
+            hap_stats,
+            hist_by="num_Vars_by_PI",
+            filepath=varsize_path,
+            prefix=prefix,
+            show_plot=show_plot,
         )
         plot_hist_one_chr(
-            hap_stats, hist_by="range_of_PI", filepath=genomic_path, prefix=prefix
+            hap_stats,
+            hist_by="range_of_PI",
+            filepath=genomic_path,
+            prefix=prefix,
+            show_plot=show_plot,
         )
 
     else:
         plot_hist_multi_chr(
-            hap_stats, hist_by="num_Vars_by_PI", filepath=varsize_path, prefix=prefix
+            hap_stats,
+            hist_by="num_Vars_by_PI",
+            filepath=varsize_path,
+            prefix=prefix,
+            show_plot=show_plot,
         )
         plot_hist_multi_chr(
-            hap_stats, hist_by="range_of_PI", filepath=genomic_path, prefix=prefix
+            hap_stats,
+            hist_by="range_of_PI",
+            filepath=genomic_path,
+            prefix=prefix,
+            show_plot=show_plot,
         )
 
 
@@ -117,16 +136,26 @@ def compute_stats_df(hap_data, soi, prefix, filepath):
 
 
 def plot_bar_hapstats(
-    hap_stats, xcol, ycol, filepath, xlabel=None, ylabel=None, suptitle=None
+    hap_stats,
+    xcol,
+    ycol,
+    filepath,
+    xlabel=None,
+    ylabel=None,
+    suptitle=None,
+    show_plot=False,
 ):
     ax = hap_stats.plot(x=xcol, y=ycol, kind="bar", title=suptitle)
     ax.set(xlabel=xlabel, ylabel=ylabel)
-    ax.figure.savefig(filepath)
-    plt.close()
+    if show_plot:
+        plt.show()
+    else:
+        ax.figure.savefig(filepath)
+        plt.close()
     return
 
 
-def plot_hist_one_chr(hap_stats, hist_by, filepath, prefix):
+def plot_hist_one_chr(hap_stats, hist_by, filepath, prefix, show_plot=False):
     data_i = hap_stats[hist_by].str.split(",")
     data_i = pd.Series([int(x) for x in data_i[0]])
     ax = data_i.plot(kind="hist", label=str(hap_stats["CHROM"]), alpha=0.5)
@@ -139,12 +168,15 @@ def plot_hist_one_chr(hap_stats, hist_by, filepath, prefix):
     ax.set_ylabel("frequency of the haplotypes")
 
     # ax.text(.05, .5, 'frequency of the haplotypes', ha='center', va='center', rotation='vertical')
-    ax.figure.savefig(filepath)
-    plt.close()
+    if show_plot:
+        plt.show()
+    else:
+        ax.figure.savefig(filepath)
+        plt.close()
     return
 
 
-def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix):
+def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix, show_plot=False):
     fig, ax = plt.subplots(nrows=len(hap_stats), sharex=True)
     for i, data in hap_stats.iterrows():
         # first convert data to list of integers
@@ -171,8 +203,12 @@ def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix):
 
     # plt.ylabel('frequency of the haplotypes')
     plt.suptitle(title)
-    plt.savefig(filepath)
-    plt.close()
+
+    if show_plot:
+        plt.show()
+    else:
+        plt.savefig(filepath)
+        plt.close()
     return
 
 
