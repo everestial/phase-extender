@@ -7,6 +7,7 @@ These data can be used to compare the improvements in phase extension, and plott
 This can include the size based on genome co-ordinate of the "POS" in each block.
 This can also include the average number of variants per haplotype before/after phase extension.
 and make a plot out of it - using pyPlot, MatlibPlot or R. """
+plt.style.use('seaborn')
 
 
 def compute_haplotype_stats(hap_data, soi, prefix, outputdir, show_plot=False):
