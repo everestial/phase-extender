@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path
+import seaborn as sns
 
 """ function that computes several stats from haplotype block before and after phase extension.
 These data can be used to compare the improvements in phase extension, and plotting histogram.
@@ -10,17 +11,17 @@ and make a plot out of it - using pyPlot, MatlibPlot or R. """
 plt.style.use('seaborn')
 
 
-def compute_haplotype_stats(hap_data, soi, prefix, outputdir, show_plot=False):
+def compute_haplotype_stats(hap_data, soi, prefix, outputdir,logscale_x=None,logscale_y=None, show_plot=False):
     # compute stats from given hap_data
     stats_df_fname = prefix + "_haplotype_stats_" + soi + ".txt"
     stats_filepath = Path(outputdir, stats_df_fname)
     hap_stats = compute_stats_df(hap_data, soi, prefix, stats_filepath)
-    plot_all_data(hap_stats, soi, prefix, outputdir, show_plot=False)
+    plot_all_data(hap_stats, soi, prefix, outputdir, logscale_x=logscale_x, logscale_y=logscale_y, show_plot=False)
     # for plot total number of variants per-chromosome
 
 
 def plot_all_data(
-    hap_data_file, soi="", prefix="noprefix", outputdir=None, show_plot=False
+    hap_data_file, soi="", prefix="noprefix", outputdir=None,logscale_x=None, logscale_y=None,show_plot=False
 ):
     if outputdir is None:
         outputdir = Path(Path.cwd())
@@ -33,7 +34,7 @@ def plot_all_data(
     var_path = Path(outputdir, "total_vars_" + soi + "_" + prefix + ".png")
     xlabel = "chromosomes"
     ylabel = "number of variants"
-    suptitle = "number of variants for each chromosome"
+    suptitle = f"{prefix} number of variants for each chromosome"
     plot_bar_hapstats(
         hap_stats,
         xcol="CHROM",
@@ -47,7 +48,7 @@ def plot_all_data(
     # plots total number of haplotypes per-chromosome
     hap_path = Path(outputdir, "total_haps_" + soi + "_" + prefix + ".png")
     ylabel = "number of haplotypes"
-    suptitle = "number of haplotypes for each chromosome"
+    suptitle = f"{prefix} number of haplotypes for each chromosome"
     plot_bar_hapstats(
         hap_stats,
         xcol="CHROM",
@@ -88,6 +89,9 @@ def plot_all_data(
             hist_by="num_Vars_by_PI",
             filepath=varsize_path,
             prefix=prefix,
+            logscale_x=logscale_x,
+            logscale_y=logscale_y,
+
             show_plot=show_plot,
         )
         plot_hist_multi_chr(
@@ -95,6 +99,9 @@ def plot_all_data(
             hist_by="range_of_PI",
             filepath=genomic_path,
             prefix=prefix,
+            logscale_x=logscale_x,
+
+            logscale_y=logscale_y,
             show_plot=show_plot,
         )
 
@@ -177,18 +184,27 @@ def plot_hist_one_chr(hap_stats, hist_by, filepath, prefix, show_plot=False):
     return
 
 
-def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix, show_plot=False):
+def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix,logscale_x=None, logscale_y=None, show_plot=False):
     fig, ax = plt.subplots(nrows=len(hap_stats), sharex=True)
     for i, data in hap_stats.iterrows():
         # first convert data to list of integers
         data_i = [int(x) for x in data[hist_by].split(",")]
-        ax[i].hist(data_i, label=str(data["CHROM"]), alpha=0.5)
-        ax[i].legend()
+        g= sns.histplot(data_i, alpha=0.5, ax= ax[i], log_scale=logscale_x)
+        g.set(ylabel = None)
+        ax[i].legend(str(data["CHROM"]))
+        # data_i = [int(x) for x in data[hist_by].split(",")]
+        # ax[i].hist(data_i, label=str(data["CHROM"]), alpha=0.5)
+        # ax[i].legend()
+    if logscale_y:
+        y_label = "frequency of the haplotypes (in log10 scale)"
+    else:
+        y_label = "frequency of the haplotypes"
+
 
     fig.text(
         0.05,
         0.5,
-        "frequency of the haplotypes",
+        y_label,
         ha="center",
         va="center",
         rotation="vertical",
@@ -200,7 +216,13 @@ def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix, show_plot=False):
     )
     title = f"{prefix} histogram of size of the haplotype (by {sub_title}) \n for each chromosome"
     # plt.set_title(title)
-    plt.xlabel(f"size of the haplotype (by {sub_title})")
+
+    if logscale_x:
+        x_label = f"size of the haplotype (by {sub_title}) (in log10 scale)"
+    else:
+        x_label = f"size of the haplotype (by {sub_title})"
+
+    plt.xlabel(x_label)
 
     # plt.ylabel('frequency of the haplotypes')
     plt.suptitle(title)
