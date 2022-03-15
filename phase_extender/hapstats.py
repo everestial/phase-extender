@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path
@@ -73,6 +74,8 @@ def plot_all_data(
             hist_by="num_Vars_by_PI",
             filepath=varsize_path,
             prefix=prefix,
+            logscale_x=logscale_x,
+            logscale_y=logscale_y,
             show_plot=show_plot,
         )
         plot_hist_one_chr(
@@ -80,6 +83,8 @@ def plot_all_data(
             hist_by="range_of_PI",
             filepath=genomic_path,
             prefix=prefix,
+            logscale_x=logscale_x,
+            logscale_y=logscale_y,
             show_plot=show_plot,
         )
 
@@ -163,17 +168,29 @@ def plot_bar_hapstats(
     return
 
 
-def plot_hist_one_chr(hap_stats, hist_by, filepath, prefix, show_plot=False):
+def plot_hist_one_chr(hap_stats, hist_by, filepath, prefix,logscale_x=None,
+            logscale_y=None, show_plot=False):
     data_i = hap_stats[hist_by].str.split(",")
     data_i = pd.Series([int(x) for x in data_i[0]])
-    ax = data_i.plot(kind="hist", label=str(hap_stats["CHROM"]), alpha=0.5)
+    ax= sns.histplot(data_i, alpha=0.5, log_scale=True)
+
+    # ax = data_i.plot(kind="hist", label=str(hap_stats["CHROM"]), alpha=0.5, log_scale=logscale_y)
     sub_title = (
         "number of variants" if hist_by == "num_Vars_by_PI" else "Genomic Distance"
     )
     title = f"{prefix} histogram of size of the haplotype (by {sub_title}) \n for each chromosome"
     ax.set_title(title)
+    if logscale_x:
+        sub_title += " (in log10 scale)"
     ax.set_xlabel(f"size of the haplotype (by {sub_title})")
-    ax.set_ylabel("frequency of the haplotypes")
+
+    if logscale_y:
+
+        y_label = "frequency of the haplotypes(in log10 scale) "
+    else:
+        y_label = "frequency of the haplotypes"
+    
+    ax.set_ylabel(y_label)
 
     # ax.text(.05, .5, 'frequency of the haplotypes', ha='center', va='center', rotation='vertical')
     if show_plot:
@@ -189,7 +206,7 @@ def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix,logscale_x=None, lo
     for i, data in hap_stats.iterrows():
         # first convert data to list of integers
         data_i = [int(x) for x in data[hist_by].split(",")]
-        g= sns.histplot(data_i, alpha=0.5, ax= ax[i], log_scale=logscale_x)
+        g= sns.histplot(data_i, alpha=0.5, ax= ax[i], log_scale=logscale_y)
         g.set(ylabel = None)
         ax[i].legend(str(data["CHROM"]))
         # data_i = [int(x) for x in data[hist_by].split(",")]
@@ -234,6 +251,80 @@ def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix,logscale_x=None, lo
         plt.close()
     return
 
+def plot_stacked_haplotypes_variants(merged_df, outputdir= None, show_plot=True):
+    if outputdir is None:
+        outputdir = os.getcwd()
+
+    fig, axs = plt.subplots(ncols=2, figsize=(12,6), gridspec_kw={'width_ratios': [3, 1]})
+    # axs.autoscale(enable=True) 
+    g =sns.barplot(y = 'total_Vars', data=merged,x='CHROM',color='#FFBD33', ax= axs[1].twinx())
+    # g.set(yticklabels=[])
+    # ax[1].set_y_axis('')
+    sns.barplot(y = 'total_haplotypes', data=merged, x='CHROM', hue= 'stage', ax= axs[0])
+    axs[0].set(title="Bar plot showing total number \n of haplotypes for each chromosomes")
+    axs[0].set(ylabel='total number of haplotypes')
+    axs[1].set(title="Bar plot showing total number \n  of variants for each chromosomes")
+    axs[1].set(ylabel='total number of variants')
+
+    plt.tight_layout()
+    if show_plot:
+        plt.show()
+    fig.savefig(outputdir+"/total_haps_stacked_with_vars2.png")
+
+def get_melted_df(df, col_name= 'range_of_PI'):
+    splited = df[col_name].str.split(',', expand=True)
+    splited['stage'] = ['initial', 'iteration01', 'iteration02']
+    melted_df = splited.melt(id_vars= 'stage')
+    melted_df.dropna(inplace=True)
+    melted_df['value'] = pd.to_numeric(melted_df['value'])
+    return melted_df
+
+
+def plot_hist_one_chr_stacked(melted_df, hist_by=None, filepath=None, prefix= 'Stacked',logscale_x=True,
+            logscale_y=True, show_plot=False):
+    sub_title = (
+            "number of variants" if hist_by == "num_Vars_by_PI" else "genomic distance"
+        )
+    title = f"{prefix} histogram of haplotype size by {sub_title} \n for each chromosome"
+    ax = sns.displot(data=melted_df, x='value', hue='stage', log_scale=[logscale_x, logscale_y])
+    # sns.move_legend(ax, "upper right", title='Stages')
+    # ax.fig.suptitle(title)
+    # if logscale_x:
+    #     sub_title += " (in log2 scale)"
+    # ax.set_xlabel(f"size of the haplotype (by {sub_title})")
+
+    # if logscale_y:
+
+    #     y_label = "frequency of the haplotypes(in log2scale) "
+    # else:
+    y_label = "frequency of the haplotypes"
+    x_label = f"haplotype size by {sub_title}"
+    
+    # ax.set_ylabel(y_label)
+    ax.set(title=title, xlabel =x_label, ylabel= y_label )
+    plt.tight_layout()
+
+    # ax.text(.05, .5, 'frequency of the haplotypes', ha='center', va='center', rotation='vertical')
+    if show_plot:
+        plt.show()
+    if filepath:
+        ax.figure.savefig(filepath)
+        plt.close()
+
+def get_merged_metrices(merged_df, outputdir=None):
+    new_df = pd.DataFrame()
+    new_df['CHROM'] = merged_df['CHROM']
+    new_df['max_range_pi'] = merged_df['range_of_PI'].apply(lambda x: max((int(xs) for xs in x.split(','))))
+    new_df['min_range_pi'] = merged_df['range_of_PI'].apply(lambda x: min((int(xs) for xs in x.split(','))))
+    new_df['max_num_vars_pi']= merged_df['num_Vars_by_PI'].apply(lambda x: max((int(xs) for xs in x.split(','))))
+    new_df['min_num_vars_pi'] = merged_df['num_Vars_by_PI'].apply(lambda x: min((int(xs) for xs in x.split(','))))
+    new_df['stage'] = merged_df['stage']
+    if outputdir:
+        new_df.to_csv(outputdir+"/metrics.csv", index=False)
+        return
+
+
+    return new_df
 
 # import matplotlib.pyplot as plt
 # import pandas as pd
