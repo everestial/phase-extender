@@ -111,7 +111,18 @@ VCF from `phaser` consists of `Phased Genotype i.e PG` and `Phase Block Index i.
 
 `sudo apt-get install python3`
 
-### Installation  and setup
+### Installation from pypi:
+Phase Extender is hosted on pypi. So, you can install it using pip as:
+```bash
+$ pip install phase-extender
+
+# After installation is complete you can run help function to get its parameters.
+
+$ phase_extender -h
+```
+Now you can jump to usage and replace `python3 phase_extender.py` with `phase-extender`.
+
+### Installation  and setup from source (Optional)
 
 1. Clone this repo.
 
@@ -394,6 +405,9 @@ Contains data from the sites that have unphased or missing GT (genotype) for the
 This file contains ReadBackPhased haplotype after phase extension concated with the missing data. This file contain equal number of row as input haplotype file and data only for sample of interest.
 
 ## Plots
+
+For plotting statistics from initial and files files in each iteration; you can use [merged stats haps data](Merge haplotypes stats.ipynb) & [plot data notebook notebook](./plot stacked data.ipynb).
+
 
 **Note:** - These plots are based on the descriptive statistics generated for haplotypes before and after phase extension. It is possible to take these statistics (initial_haplotype_stats_*SOI*.txt & final_haplotype_stats_*SOI*.txt) and make custom plots in **R** or by using other methods.
 

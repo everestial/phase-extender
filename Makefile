@@ -91,3 +91,7 @@ tupload: clean
 upload: clean
 	python3 -m build
 	python3 -m twine upload  dist/*
+
+uploadfast:
+	python3 -m twine upload  dist/*
+
