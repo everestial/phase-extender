@@ -406,7 +406,7 @@ This file contains ReadBackPhased haplotype after phase extension concated with 
 
 ## Plots
 
-For plotting statistics from initial and files files in each iteration; you can use [merged stats haps data](Merge haplotypes stats.ipynb) & [plot data notebook notebook](./plot stacked data.ipynb).
+For plotting statistics from initial and files files in each iteration; you can use [merged stats haps data](./Merge haplotypes stats.ipynb) & [plot data notebook notebook](./plot stacked data.ipynb).
 
 
 **Note:** - These plots are based on the descriptive statistics generated for haplotypes before and after phase extension. It is possible to take these statistics (initial_haplotype_stats_*SOI*.txt & final_haplotype_stats_*SOI*.txt) and make custom plots in **R** or by using other methods.
