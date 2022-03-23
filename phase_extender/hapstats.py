@@ -251,7 +251,7 @@ def plot_hist_multi_chr(hap_stats, hist_by, filepath, prefix,logscale_x=None, lo
         plt.close()
     return
 
-def plot_stacked_haplotypes_variants(merged_df, outputdir= None, show_plot=True):
+def plot_stacked_haplotypes_variants(merged, outputdir= None, show_plot=True):
     if outputdir is None:
         outputdir = os.getcwd()
 
