@@ -8,7 +8,6 @@ from phase_extender.arg_builders import get_args
 from phase_extender.val_extractor import args_to_val
 from phase_extender.utils import print_authorship
 
-
 def main():
     parser = argparse.ArgumentParser()
     args_namespace = get_args(parser)
