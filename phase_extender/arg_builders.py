@@ -160,7 +160,7 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError("Boolean value expected.")
 
-
+# TODO
 # parser.add_argument("--nice", type=str2bool, nargs='?',
 #                         const=True, default=False,
 #                         help="Activate nice mode.")
